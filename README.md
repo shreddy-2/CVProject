@@ -74,3 +74,4 @@ The following should be met with the `requirements.txt` file.
 * OpenCV - download from https://pypi.org/project/opencv-python/
 * CVZone - download from https://pypi.org/project/cvzone/
 * PyVirtualCam - download from https://pypi.org/project/pyvirtualcam/
+* mss - download from https://pypi.org/project/mss/
