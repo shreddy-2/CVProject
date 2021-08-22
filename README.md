@@ -75,3 +75,40 @@ The following should be met with the `requirements.txt` file.
 * CVZone - download from https://pypi.org/project/cvzone/
 * PyVirtualCam - download from https://pypi.org/project/pyvirtualcam/
 * mss - download from https://pypi.org/project/mss/
+
+# www
+Attempt to make it available as a web page. Web page done using VueJS.
+
+## Pre-requisite:
+* NodeJS from [https://nodejs.org/en/](https://nodejs.org/en/)
+
+## How to use
+
+```
+cd www
+```
+
+Project setup/preliminary:
+```
+npm install
+```
+
+Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+Compiles for deployment to production
+```
+npm run build
+```
+Run unit tests
+```
+npm run test:unit
+```
+
+Lints and fixes files
+```
+npm run lint
+```
+

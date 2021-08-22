@@ -1,0 +1,58 @@
+{
+  "_from": "@mediapipe/selfie_segmentation",
+  "_id": "@mediapipe/selfie_segmentation@0.1.1629494320",
+  "_inBundle": false,
+  "_integrity": "sha512-D3Ap13awSSkP2H+4DQse74H1KwVTN/P2QfdvB0FXL5+9C+uz4YGWB9aRHnBHsbk0ISO9LGJnbDn9iw16WPYTKQ==",
+  "_location": "/@mediapipe/selfie_segmentation",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "@mediapipe/selfie_segmentation",
+    "name": "@mediapipe/selfie_segmentation",
+    "escapedName": "@mediapipe%2fselfie_segmentation",
+    "scope": "@mediapipe",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@mediapipe/selfie_segmentation/-/selfie_segmentation-0.1.1629494320.tgz",
+  "_shasum": "dfdd0957f849a5a1d60b7044a5af8de752d2e52b",
+  "_spec": "@mediapipe/selfie_segmentation",
+  "_where": "C:\\Users\\julie\\Development\\shreddy\\CVProject\\www",
+  "author": {
+    "name": "mhays@google.com"
+  },
+  "browser": {
+    "node-fetch": false,
+    "util": false,
+    "crypto": false
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "Mediapipe Selfie Segmentation Solution",
+  "devDependencies": {},
+  "homepage": "https://google.github.io/mediapipe/solutions/selfie_segmentation",
+  "jsdelivr": "selfie_segmentation.js",
+  "keywords": [
+    "AR",
+    "ML",
+    "Augmented"
+  ],
+  "license": "Apache-2.0",
+  "main": "selfie_segmentation.js",
+  "module": "selfie_segmentation.js",
+  "name": "@mediapipe/selfie_segmentation",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "sideEffects": [],
+  "types": "index.d.ts",
+  "unpkg": "selfie_segmentation.js",
+  "version": "0.1.1629494320"
+}
