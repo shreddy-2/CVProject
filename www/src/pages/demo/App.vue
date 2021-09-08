@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import Viewer from "./components/Viewer.vue";
+import Viewer from "@/components/Viewer.vue";
 
 export default {
   name: "App",
