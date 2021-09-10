@@ -123,6 +123,8 @@
     <div class="hidden">
       <img src="/assets/images/thispersondoesnotexist.jfif" id="model-warmup-image" />
       <canvas id="canvas-video-foreground"></canvas>
+      <video id="webcam-feed"></video>
+      <canvas id="webcam-canvas"></canvas>
     </div>
   </div>
 </template>
@@ -147,20 +149,29 @@ export default {
 
       video_ready: false,
       model_ready: false,
+      user_media_ready: false,
 
+      is_playing: false,
+
+      background_bitmap: null,
       foreground_bitmap: null,
 
-      is_playing: false
+      user_media_capabilities: null
+
     };
   },
 
   mounted: function() {
     this.has_error = false;
+
     this.video_ready = false;
     this.model_ready = false;
+    this.user_media_ready = false;
+
     this.is_playing = false;
 
     this.initialise_video_feed();
+    this.initialise_user_media();
   },
 
   methods: {
@@ -168,13 +179,14 @@ export default {
      * Resize
      */
     resize: function() {
+      console.log("Resize");
       let c = this.renderer();
       let w = c.parentNode.clientWidth;
       let h = c.parentNode.clientHeight;
 
-      const v = this.video_feed();
-      const ar = v.videoWidth / v.videoHeight;
-      console.log("Video w/h", v.videoWidth, v.videoHeight);
+      const wv = this.webcam_feed();
+      const ar = wv.videoWidth / wv.videoHeight;
+      console.log("Video w/h", wv.videoWidth, wv.videoHeight);
 
       if (ar < w/h) {
         c.width = ar * h;
@@ -184,10 +196,69 @@ export default {
         c.height = w / ar;
       }
 
+      const c2 = this.webcam_canvas();
+      c2.width = wv.videoWidth;
+      c2.height = wv.videoHeight;
+
+      const v = this.video_feed();
       const c1 = this.video_foreground_extractor();
       c1.width = v.videoWidth;
       c1.height = v.videoHeight;
     },
+
+    /*
+     * Initialise webcam (user media device)
+     */
+    initialise_user_media: function() {
+      navigator.mediaDevices.getUserMedia({audio: false, video: { facingMode: "environment" } })
+      .then((media_stream) => {
+        this.user_media_capabilities = media_stream.getVideoTracks()[0].getCapabilities();
+        this.webcam_feed().srcObject = media_stream;
+        this.webcam_feed().oncanplay = () => {
+          this.user_media_ready = true;
+          this.resize();
+        };
+
+        this.webcam_feed().play();
+      })
+      .catch((e) => {this.on_error("Unable to access web camera", e);});
+    },
+
+    /*
+     * Play user media
+     */
+    play_user_media: function() {
+      const video = this.webcam_feed();
+      if (video.paused || video.ended) {return ;}
+      const canvas = this.webcam_canvas();
+      var context = canvas.getContext('2d');
+      if (this.user_media_capabilities.facingMode.includes('user')) { // User facing flip along y
+        context.save();
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        context.restore();
+      } else { // Environment facing camera
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      }
+      const data = context.getImageData(0, 0, canvas.width, canvas.height);
+      createImageBitmap(data)
+      .then((bmp) => {
+        this.background_bitmap = bmp;
+        setTimeout(() => {this.play_user_media();}, 0);
+      })
+      .catch((e) => {this.on_error("Unable to extract bitmap image from webcam", e);});
+    },
+
+    /*
+     * Accessor to webcam video feed element
+     */
+    webcam_feed: function() {return document.getElementById("webcam-feed");},
+
+    /*
+     * Accessor to webcam video feed element
+     */
+    webcam_canvas: function() {return document.getElementById("webcam-canvas");},
 
     /*
      * Accessor to video feed element
@@ -212,10 +283,42 @@ export default {
         var c = this.renderer();
         var ctx = c.getContext('2d');
         ctx.clearRect(0, 0, c.width, c.height);
-        // if (this.background_bitmap) {ctx.drawImage(this.background_bitmap, 0, 0, c.width, c.height);}
+
+        if (this.background_bitmap) {
+          ctx.drawImage(this.background_bitmap, 0, 0, c.width, c.height);
+        }
+
         // if (this.insert_bitmap) {ctx.drawImage(this.insert_bitmap, 0, 0, c.width, c.height);}
-        if (this.foreground_bitmap) {ctx.drawImage(this.foreground_bitmap, 0, 0, c.width, c.height);}
+
+        if (this.foreground_bitmap) { 
+          const r = this.fit_image(this.foreground_bitmap, c);
+          ctx.drawImage(this.foreground_bitmap, 
+                        0.5*(c.width - r.width), c.height - r.height, 
+                        r.width, r.height); 
+        }
         window.requestAnimationFrame(() => {this.render();});
+      }
+    },
+
+    /*
+     * Retrieve width and height to fit into a target {width: xyz, height: xyz}
+     * input:
+     *   - image: object of type ImageBitmap
+     *   - target: object containing container with/height as {width: xyz, height: xyz}
+     * Output:
+     *    {width: abc, height: abc}
+     */
+    fit_image: function(image, target) {
+      if ((Math.abs(target.width) < 1e-3) || (Math.abs(target.height) < 1e-3)) { return {width: 0, height: 0}; }
+
+      const w = image.width; const h = image.height; const ar = w / h;
+      const ar_t = target.width / target.height;
+      if (ar < ar_t) {
+        return {height: target.height,
+                width: w / h * target.height};
+      } else {
+        return {height: h / w * target.width,
+                width: target.width};
       }
     },
 
@@ -225,13 +328,13 @@ export default {
     initialise_video_feed: function() {
       this.video_feed().oncanplay = () => {
         this.video_ready = true;
-        this.resize();
         this.do_model_warmup();
       };
       this.video_feed().onplay = () => {
+        this.is_playing = true; 
         this.resize();
         window.onresize = () => {this.resize();};
-        this.is_playing = true; 
+        this.play_user_media();
         this.play_video(); 
         this.render();
       };
@@ -242,7 +345,8 @@ export default {
      */
     is_ready: function() {
       return this.video_ready &&
-             this.model_ready;
+             this.model_ready &&
+             this.user_media_ready;
     },
 
     /*
@@ -252,7 +356,7 @@ export default {
       const video = this.video_feed();
       this.is_playing = ! (video.paused || video.ended);
       if (video.paused || video.ended) {return ;}
-      this.handle_video()
+      this.handle_video(this.video_feed(), this.video_foreground_extractor())
       .then((foreground_bmp) => {
         this.foreground_bitmap = foreground_bmp; 
         setTimeout(() => {this.play_video();}, 0);
@@ -263,11 +367,11 @@ export default {
     /*
      * Get the first image to initialise render
      */
-    handle_video: function() {
+    handle_video: function(video, canvas) {
       return new Promise((resolve, reject) => {
-        ImageExtraction.extract(this.video_feed())
+        ImageExtraction.extract(video)
         .then((r) => {
-          this.get_foreground_bitmap(this.video_foreground_extractor(), r.image, r.mask)
+          this.get_foreground_bitmap(canvas, r.image, r.mask)
           .then(resolve)
           .catch(reject);
         })

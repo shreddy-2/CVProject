@@ -62,6 +62,9 @@ export default {
 
     video: function() {
       return document.getElementById('video');
+    },
+    on_error: function(msg, e) {
+      console.log("Error: ", msg, e);
     }
   }
 };
