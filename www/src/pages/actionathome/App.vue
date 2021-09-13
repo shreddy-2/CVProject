@@ -6,23 +6,48 @@
       <div v-if="(! video_ready) && (! has_error)">
         <div class="relative max-w-3xl mx-auto mt-12 lg:mt-24 text-center">
           <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
-            View the action at home
+            Select a video from the list below
+          </h2>
+        </div>
+
+        <div class="relative max-w-3xl mx-auto mt-12">
+        <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          <li v-for="s in samples"
+              :key="s.video_url"
+              class="col-span-1 flex flex-col text-center bg-white rounded-lg shadow divide-y divide-gray-200">
+            <div class="flex-1 flex flex-col p-2">
+              <img class="h-32 flex-shrink-0 mx-auto rounded-full" :src="s.thumbnail_url" alt="">
+              <dl class="mt-1 flex-grow flex flex-col justify-between">
+                <dd class="text-gray-500 text-sm">{{ s.description }}</dd>
+              </dl>
+            </div>
+            <div>
+              <div class="-mt-px flex divide-x divide-gray-200">
+                <div class="w-0 flex-1 flex">
+                  <a href="#" class="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500" @click="set_video(s.video_url)">
+                    <!-- Heroicon name: solid/play -->
+                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="ml-3">View</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          <!-- More people... -->
+        </ul>
+        </div>
+
+
+        <div class="relative max-w-3xl mx-auto mt-12 lg:mt-24 text-center">
+          <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
+            Or use your own
           </h2>
         </div>
 
         <div class="relative max-w-xl mx-auto mt-12">
-<!--
-          <div class="relative flex items-start">
-            <div class="flex items-center h-5">
-              <input id="model-warmup" v-model="model_warmup" aria-describedby="model-warmup-description" name="model-warmup" type="checkbox" disabled class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
-            </div>
-            <div class="ml-3 text-sm">
-              <label for="model-warmup" class="font-medium text-gray-700">Model warm-up</label>
-              <p id="model-warmup-description" class="text-gray-500">A model is employed to extract foreground and background. This checkbox becomes ticked off when the model is loaded and ready.</p>
-            </div>
-          </div>
--->
-
           <div class="relative text-center mt-12">
             <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
               <div class="space-y-1 text-center">
@@ -31,7 +56,7 @@
                 </svg>
                 <div class="flex text-sm text-gray-600">
                   <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                    <span>Upload a file</span>
+                    <span>Select a file</span>
                     <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="on_file">
                   </label>
                   <p class="pl-1">or drag and drop</p>
@@ -134,6 +159,17 @@ import Navbar from "@/components/navbar";
 // import Renderer from "@/components/renderer";
 import ImageExtraction from "@/lib/image_extraction";
 
+const samples = [
+  {description: "Demonstration video used in tutorial on manipulating video using canvas - how to perform chroma-keying using JavaScript code.",
+   source_url: "https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Manipulating_video_using_canvas",
+   video_url: "/assets/videos/video.mp4",
+   thumbnail_url: "/assets/videos/thumbnail.png" },
+  {description: "John Bishop - We have to trust Boris, John Bishop shares his thoughts on Corona Virus and the UK government",
+   source_url: "https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Manipulating_video_using_canvas",
+   video_url: "https://d39ntp7mtoszgk.cloudfront.net/001_JohnBishop-WeHaveToTrustBoris/video.mp4",
+   thumbnail_url: "https://d39ntp7mtoszgk.cloudfront.net/001_JohnBishop-WeHaveToTrustBoris/thumbnail.png"}
+];
+
 export default {
   name: "App",
   components: {
@@ -147,6 +183,7 @@ export default {
       error_message: null,
       error: null,
 
+      video_url: null,
       video_ready: false,
       model_ready: false,
       user_media_ready: false,
@@ -156,7 +193,9 @@ export default {
       background_bitmap: null,
       foreground_bitmap: null,
 
-      user_media_capabilities: null
+      user_media_capabilities: null,
+
+      samples
 
     };
   },
@@ -164,7 +203,6 @@ export default {
   mounted: function() {
     this.has_error = false;
 
-    this.video_ready = false;
     this.model_ready = false;
     this.user_media_ready = false;
 
@@ -172,6 +210,13 @@ export default {
 
     this.initialise_video_feed();
     this.initialise_user_media();
+
+    const url = new URL(window.location);
+    console.log("url", url);
+    if (url.searchParams.has("video")) {
+      console.log("Load video " + url.searchParams.get("video"));
+      this.set_video(url.searchParams.get("video"));
+    }
   },
 
   methods: {
@@ -393,7 +438,6 @@ export default {
      */
     on_file: function(evt) {
       const files = evt.target.files;
-      console.log(files);
       if (files.length > 1) {
         this.on_error("Multiple files have been selected", null);
       } else if (! (files[0].type.match(/video\/mp4/))) {

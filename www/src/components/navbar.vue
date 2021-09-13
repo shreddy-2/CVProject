@@ -86,17 +86,17 @@ export default {
   data: function() {
     return {
       pages: [
-        {label: "Home", url: "/index", isCurrent: false, isDefault: true},
-        {label: "Demo", url: "/demo", isCurrent: false, isDefault: false},
-        {label: "Insert me in the video", url: "/insertme", isCurrent: false, isDefault: false},
-        {label: "View action at home", url: "/actionathome", isCurrent: false, isDefault: false},
+        {label: "Home", url: "/index.html", isCurrent: false, isDefault: true},
+        {label: "Demo", url: "/demo.html", isCurrent: false, isDefault: false},
+        {label: "Insert me in the video", url: "/insertme.html", isCurrent: false, isDefault: false},
+        {label: "View action at home", url: "/actionathome.html", isCurrent: false, isDefault: false},
       ],
       mobile_menu_open: false
     };
   },
   mounted: function() {
     var u = new URL(window.location);
-    this.pages.forEach((p) => {p.isCurrent = (u.pathname.includes(p.url));});
+    this.pages.forEach((p) => {p.isCurrent = (u.pathname.includes(p.url.replace(/\.html$/i, "")));});
     if (! this.pages.reduce((acc, p) => {return acc || p.isCurrent;}, false)) {
       var p = this.pages.find((p) => p.isDefault);
       if (p !== undefined) {p.isCurrent = true;}
