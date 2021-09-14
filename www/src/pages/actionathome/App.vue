@@ -453,6 +453,9 @@ export default {
     set_video: function(url) {
       let source = document.createElement('source');
       source.setAttribute('src', url);
+      if ((new URL(url, window.location.href)).origin !== window.location.origin) {
+        this.video_feed().crossOrigin = "anonymous";
+      }
       this.video_feed().appendChild(source);
       this.video_feed().load();
     },
