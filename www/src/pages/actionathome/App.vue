@@ -147,9 +147,6 @@
     <!-- hidden elements -->
     <div class="hidden">
       <img src="/assets/images/thispersondoesnotexist.jfif" id="model-warmup-image" />
-      <canvas id="canvas-video-foreground"></canvas>
-      <video id="webcam-feed"></video>
-      <canvas id="webcam-canvas"></canvas>
     </div>
   </div>
 </template>
@@ -157,7 +154,9 @@
 <script>
 import Navbar from "@/components/navbar";
 // import Renderer from "@/components/renderer";
-import ImageExtraction from "@/lib/image_extraction";
+// import ImageExtraction from "@/lib/image_extraction";
+import { Segmenter, Segmentor } from "@/lib/segmenter/segmenter.js";
+import { Webcam } from "@/lib/segmenter/webcam.js";
 
 const samples = [
   {description: "Demonstration video used in tutorial on manipulating video using canvas - how to perform chroma-keying using JavaScript code.",
@@ -174,7 +173,6 @@ export default {
   name: "App",
   components: {
     Navbar,
-    // Renderer,
   },
 
   data: function() {
@@ -183,17 +181,20 @@ export default {
       error_message: null,
       error: null,
 
-      video_url: null,
+      segmentor: null,
+
+      segmenter_video: null,
+
+      webcam: null,
+      webcam_ready: false,
+
       video_ready: false,
       model_ready: false,
-      user_media_ready: false,
 
       is_playing: false,
 
       background_bitmap: null,
       foreground_bitmap: null,
-
-      user_media_capabilities: null,
 
       samples
 
@@ -204,18 +205,25 @@ export default {
     this.has_error = false;
 
     this.model_ready = false;
-    this.user_media_ready = false;
+    this.webcam_ready = false;
 
     this.is_playing = false;
 
-    this.initialise_video_feed();
-    this.initialise_user_media();
+    this.segmentor = new Segmentor();
+
+    this.webcam = new Webcam({audio: false, video: {facingMode: "environment"}});
+    this.webcam.oncanplay = () => {
+          this.webcam_ready = true;
+          this.resize();
+}
+    this.webcam.on_result = (bmp) => {this.background_bitmap = bmp;};
+    this.webcam.load()
+    .catch((e) => {this.on_error("Unable to load the webcam", e);});
 
     const url = new URL(window.location);
-    console.log("url", url);
     if (url.searchParams.has("video")) {
       console.log("Load video " + url.searchParams.get("video"));
-      this.set_video(url.searchParams.get("video"));
+      this.segmenter_video = Segmenter.from_url(url.searchParams.get("video"), this.segmentor);
     }
   },
 
@@ -229,9 +237,8 @@ export default {
       let w = c.parentNode.clientWidth;
       let h = c.parentNode.clientHeight;
 
-      const wv = this.webcam_feed();
-      const ar = wv.videoWidth / wv.videoHeight;
-      console.log("Video w/h", wv.videoWidth, wv.videoHeight);
+      const ar = this.webcam.width / this.webcam.height;
+      console.log("Video w/h", this.webcam.width, this.webcam.height);
 
       if (ar < w/h) {
         c.width = ar * h;
@@ -240,80 +247,7 @@ export default {
         c.width = w;
         c.height = w / ar;
       }
-
-      const c2 = this.webcam_canvas();
-      c2.width = wv.videoWidth;
-      c2.height = wv.videoHeight;
-
-      const v = this.video_feed();
-      const c1 = this.video_foreground_extractor();
-      c1.width = v.videoWidth;
-      c1.height = v.videoHeight;
     },
-
-    /*
-     * Initialise webcam (user media device)
-     */
-    initialise_user_media: function() {
-      navigator.mediaDevices.getUserMedia({audio: false, video: { facingMode: "environment" } })
-      .then((media_stream) => {
-        this.user_media_capabilities = media_stream.getVideoTracks()[0].getCapabilities();
-        this.webcam_feed().srcObject = media_stream;
-        this.webcam_feed().oncanplay = () => {
-          this.user_media_ready = true;
-          this.resize();
-        };
-
-        this.webcam_feed().play();
-      })
-      .catch((e) => {this.on_error("Unable to access web camera", e);});
-    },
-
-    /*
-     * Play user media
-     */
-    play_user_media: function() {
-      const video = this.webcam_feed();
-      if (video.paused || video.ended) {return ;}
-      const canvas = this.webcam_canvas();
-      var context = canvas.getContext('2d');
-      if (this.user_media_capabilities.facingMode.includes('user')) { // User facing flip along y
-        context.save();
-        context.translate(canvas.width, 0);
-        context.scale(-1, 1);
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        context.restore();
-      } else { // Environment facing camera
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-      }
-      const data = context.getImageData(0, 0, canvas.width, canvas.height);
-      createImageBitmap(data)
-      .then((bmp) => {
-        this.background_bitmap = bmp;
-        setTimeout(() => {this.play_user_media();}, 0);
-      })
-      .catch((e) => {this.on_error("Unable to extract bitmap image from webcam", e);});
-    },
-
-    /*
-     * Accessor to webcam video feed element
-     */
-    webcam_feed: function() {return document.getElementById("webcam-feed");},
-
-    /*
-     * Accessor to webcam video feed element
-     */
-    webcam_canvas: function() {return document.getElementById("webcam-canvas");},
-
-    /*
-     * Accessor to video feed element
-     */
-    video_feed: function() {return document.getElementById("video-feed");},
-
-    /*
-     * Accessor to canvas used to extract video foreground
-     */
-    video_foreground_extractor: function() {return document.getElementById("canvas-video-foreground");},
 
     /*
      * Accessor to canvas used for rendering
@@ -321,16 +255,29 @@ export default {
     renderer: function() {return document.getElementById("canvas-renderer"); },
 
     /*
+     * Accessor to video feed element
+     */
+    video: function() {return document.getElementById("video-feed");},
+
+    /*
      * Render available images
      */
     render: function() {
+      this.is_playing = ! (this.video().paused || this.video().ended);
+
+      if (! this.is_playing || this.has_error) {
+        // Stop playing
+        this.segmenter_video.stop();
+        this.webcam.stop();
+      }
+
       if (this.is_playing && ! this.has_error) {
         var c = this.renderer();
         var ctx = c.getContext('2d');
         ctx.clearRect(0, 0, c.width, c.height);
 
         if (this.background_bitmap) {
-          ctx.drawImage(this.background_bitmap, 0, 0, c.width, c.height);
+            ctx.drawImage(this.background_bitmap, 0, 0, c.width, c.height);
         }
 
         // if (this.insert_bitmap) {ctx.drawImage(this.insert_bitmap, 0, 0, c.width, c.height);}
@@ -368,69 +315,23 @@ export default {
     },
 
     /*
-     * Initialise video feed response
-     */
-    initialise_video_feed: function() {
-      this.video_feed().oncanplay = () => {
-        this.video_ready = true;
-        this.do_model_warmup();
-      };
-      this.video_feed().onplay = () => {
-        this.is_playing = true; 
-        this.resize();
-        window.onresize = () => {this.resize();};
-        this.play_user_media();
-        this.play_video(); 
-        this.render();
-      };
-    },
-
-    /*
      * Check if ready for starting video
      */
     is_ready: function() {
       return this.video_ready &&
              this.model_ready &&
-             this.user_media_ready;
-    },
-
-    /*
-     * Handle the video feed when it starts to play
-     */
-    play_video: function() {
-      const video = this.video_feed();
-      this.is_playing = ! (video.paused || video.ended);
-      if (video.paused || video.ended) {return ;}
-      this.handle_video(this.video_feed(), this.video_foreground_extractor())
-      .then((foreground_bmp) => {
-        this.foreground_bitmap = foreground_bmp; 
-        setTimeout(() => {this.play_video();}, 0);
-      })
-      .catch((e) => {this.on_error("Error proceesing video", e);});
-    },
-
-    /*
-     * Get the first image to initialise render
-     */
-    handle_video: function(video, canvas) {
-      return new Promise((resolve, reject) => {
-        ImageExtraction.extract(video)
-        .then((r) => {
-          this.get_foreground_bitmap(canvas, r.image, r.mask)
-          .then(resolve)
-          .catch(reject);
-        })
-        .catch(reject);
-      });
+             this.webcam_ready;
     },
 
     /*
      * Load and warmup model
      */
     do_model_warmup: function() {
-      ImageExtraction.extract(document.getElementById("model-warmup-image"))
-      .then(() => {this.model_ready = true;})
-      .catch((e) => {this.on_error("Model warmup failed", e);});
+      if (! this.model_ready) {
+        this.segmentor.extract(document.getElementById("model-warmup-image"))
+        .then(() => {this.model_ready = true; console.log("model warmup successful");})
+        .catch((e) => {this.on_error("Model warmup failed", e);});
+      }
     },
 
     /*
@@ -451,28 +352,33 @@ export default {
      * Assign video url
      */
     set_video: function(url) {
+console.log("set video to ", url);
       let source = document.createElement('source');
       source.setAttribute('src', url);
       if ((new URL(url, window.location.href)).origin !== window.location.origin) {
-        this.video_feed().crossOrigin = "anonymous";
+        this.video().crossOrigin = "anonymous";
       }
-      this.video_feed().appendChild(source);
-      this.video_feed().load();
-    },
+      this.video().appendChild(source);
+      this.video().oncanplay = () => {
+        console.log("video oncanplay");
+        this.video_ready = true;
+        this.do_model_warmup();
+      };
+      this.video().onplay = () => {
+        console.log("video onplay");
+        this.is_playing = true;
+        this.resize();
+        window.onresize = () => {this.resize();};
+        this.webcam.start();
+        this.segmenter_video.start();
+        this.render();
+      };
+      this.video().load();
 
-    /*
-     * Extract foreground bitmap image from SegmentationResult
-     */
-    get_foreground_bitmap: function(canvas, image, mask) {
-      const ctx = canvas.getContext('2d');
-      ctx.save();
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = 'destination-in';
-      ctx.drawImage(mask, 0, 0, canvas.width, canvas.height);
-      ctx.restore();
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      return createImageBitmap(data);
+      this.segmenter_video = Segmenter.from_video(this.video(), this.segmentor);
+      this.segmenter_video.on_result = (r) => {
+        this.foreground_bitmap = r.foreground;
+      };
     },
 
     /*
