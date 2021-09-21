@@ -4,8 +4,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center">
-          <div class="flex-shrink-0">
-            Logo
+          <div class="flex-shrink-0 rounded-md border-2 border-purple-900 px-3 py-2">
+            V-M
           </div>
           <div class="hidden sm:block sm:ml-6">
             <div class="flex space-x-4">

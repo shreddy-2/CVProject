@@ -2,8 +2,11 @@
 export class Webcam {
 	#options;
 	#media_stream;
+
 	#oncanplay;
-	#onresult;
+	#onimage;
+	#onerror;
+
 	#video;
 	#canvas;
 	#running;
@@ -13,7 +16,8 @@ export class Webcam {
 		this.#options = options;
 		this.#media_stream = null;
 		this.#oncanplay = null;
-		this.#onresult = null;
+		this.#onimage = null;
+		this.#onerror = (e) => {console.log(e); throw Error("Error whilst running Webcam");};
 		this.#userFacing = false;
 
 		this.#video = document.createElement('video');
@@ -35,7 +39,9 @@ export class Webcam {
 	get width() {return this.#video.videoWidth;}
 	get height() {return this.#video.videoHeight;}
 	set oncanplay(f) { this.#oncanplay = f; }
-	set on_result(f) { this.#onresult = f; }
+	set on_result(f) { this.#onimage = f; }
+	set onimage(f) { this.#onimage = f; }
+	set onerror(f) { this.#onerror = f; }
 
 	load() {
 		return new Promise((resolve, reject) => {
@@ -83,7 +89,7 @@ export class Webcam {
 	}
 
 	run() {
-		if (this.#media_stream === null) {throw Error("Webcam is not ready");}
+		if (this.#media_stream === null) {this.#onerror(Error("Webcam is not ready"));}
 		if (this.#running) {
 			let ctx = this.#canvas.getContext('2d');
 			if (this.isUserFacing()) {
@@ -98,12 +104,10 @@ export class Webcam {
 			const data = ctx.getImageData(0, 0, this.#canvas.width, this.#canvas.height);
 			createImageBitmap(data)
 			.then((bmp) => {
-				if (this.#onresult !== null) {this.#onresult(bmp);}
+				if (this.#onimage !== null) {this.#onimage(bmp);}
 				setTimeout(() => {this.run();}, 0);
 			})
-			.catch((e) => {throw Error("Unable to extract bitmap from webcam", e);});
+			.catch(this.#onerror);
 		}
 	}
-
- 
 }

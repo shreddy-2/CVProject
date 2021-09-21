@@ -3,6 +3,7 @@
  */
 
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
+import { Video } from "./video";
 
 function get_background_bitmap(canvas, image, mask) {
       const ctx = canvas.getContext('2d');
@@ -28,20 +29,63 @@ function get_foreground_bitmap(canvas, image, mask) {
       return createImageBitmap(data);
 }
 
-export class Segmentor {
+class Segmentor {
   #selfie_segmentation;
+	#processing;
+	#keys;
+	#store;
+
   constructor() {
     this.#selfie_segmentation = new SelfieSegmentation({locateFile: (file) => {return `/assets/mediapipe/selfie_segmentation/${file}`;}});
     this.#selfie_segmentation.setOptions({ modelSelection: 1 });
+	  this.#processing = false;
+	  this.#store = {};
+	  this.#keys = [];
   }
 
+	push(key, image, onimages, onerror) {
+		if (! (key in this.#store)) {
+			this.#keys.push(key);
+		}
+		this.#store[key] = {image, onimages, onerror};
+		if (! this.#processing) {this.process();}
+	}
+
+	async process() {
+		this.#processing = true;
+		const key = this.#keys.shift();
+		if (key in this.#store) {
+		  const data = this.#store[key];
+
+		  delete this.#store[key];
+
+                  var res = null;
+                  this.#selfie_segmentation.onResults((r) => {res = r;});
+                  await this.#selfie_segmentation.send({image: data.image});
+                  if (res === null) {
+                    data.onerror("Unable to perform extraction on the image provided");
+                  } else {
+                    data.onimages(res);
+                  }
+		}
+                if (this.#keys.length > 0) { 
+			this.process(); 
+		} else {
+			this.#processing = false;
+		}
+	}
+
   async extract(image) {
+	  console.log("Segmentor:extract", image);
 var res = null;
+	  console.log("Segmentor:extract (2)", res);
 this.#selfie_segmentation.onResults((r) => {res = r;});
 await this.#selfie_segmentation.send({image});
+	  console.log("Segmentor:extract (3)", res);
 if (res === null) {
 throw Error("Unable to perform extraction on the image provided");
 }
+	  console.log("Segmentor:extract (4)", res);
     return res;
   }
 };
@@ -49,6 +93,7 @@ throw Error("Unable to perform extraction on the image provided");
 
 export class Segmenter {
 
+	/*
   static from_media_stream(media_stream, segmentor = null) {
     const segmenter = new Segmenter(null, segmentor);
     segmenter.video.srcObject = media_stream;
@@ -56,72 +101,93 @@ export class Segmenter {
     segmenter.video.load();
     return segmenter;
   }
+  */
 
+
+	static from_media(media) {
+		const segmenter = new Segmenter(media);
+		return segmenter;
+	}
+
+	/*
   static from_url(url, segmentor = null) {
-    const segmenter = new Segmenter(null, segmentor);
+	  let video = document.createElement('video');
+	  video.style.display = 'none';
+	  document.body.appendChild(video);
+
     let source = document.createElement('source');
     source.setAttribute('src', url);
     if ((new URL(url, window.location.href)).origin !== window.location.origin) {
-        segmenter.video.crossOrigin = "anonymous";
+        video.crossOrigin = "anonymous";
     }
-    segmenter.video.appendChild(source);
-    segmenter.video.load();
+    video.appendChild(source);
+
+    return Segmenter.from_video(new Video(video), segmentor);
+  }
+  */
+
+  static from_video(video) {
+    const segmenter = new Segmenter(new Video(video));
+    // segmenter.load();
     return segmenter;
   }
 
-  static from_video(video, segmentor = null) {
-    const segmenter = new Segmenter(video, segmentor);
-    segmenter.video.load();
-    return segmenter;
-  }
+	static #key = 0;
+	static get_key() {
+		Segmenter.#key += 1;
+		return Segmenter.#key;
+	}
 
-  #segmentor;
-  #video;
-  #own_video;
-  #running;
+
+  static #segmentor = null;
+
+	#myKey;
+  #media;
 	#canvas;
 
-  #on_result_callback;
+  #on_images;
+	#onerror;
 
-  constructor(video, segmentor) {
-    this.#running = false;
-    this.#on_result_callback = null;
+  constructor(media) {
+	  this.#myKey = Segmenter.get_key();
+    this.#on_images = null;
+	  this.#onerror = (e) => {console.log(e); throw Error("Error in Segmenter");};
 
-    this.#own_video = null;
-    this.#video = video;
-    if (this.#video === null) {
-      // Make own video
-	    this.#own_video = document.createElement('video');
-	    this.#own_video.style.display = 'none';
-	    document.body.appendChild(this.#own_video);
-    }
+    this.#media = media;
+	  this.#media.onimage = (image) => {this.handle_image(image); }
+
 	  this.#canvas = document.createElement('canvas');
 	    this.#canvas.style.display = 'none';
 	    document.body.appendChild(this.#canvas);
-
-    this.#segmentor = (segmentor !== null ? segmentor : new Segmentor());
-
-  }
-
-  get video() {
-    return (this.#video !== null ? this.#video : this.#own_video);
   }
 
   destroy() {
-    if (this.#own_video !== null) { this.#own_video.remove(); }
-	  if (this.#canvas !== null) {this.#canvas.remove(); }
+	  this.#media.destroy();
+	  this.#canvas.remove();
   }
 
-  set on_result(callback) {
-    this.#on_result_callback = callback;
-  }
+	get segmentor() {
+		if (Segmenter.#segmentor === null) {
+			Segmenter.#segmentor = new Segmentor();
+		}
+		return Segmenter.#segmentor;
+	}
+
+  set on_result(f) { this.#on_images = f; }
+  set on_images(f) { this.#on_images = f; }
+	set onerror(f) { 
+		this.#onerror = f; 
+		this.#media.onerror = f;
+	}
+
+	load() {
+		return this.#media.load();
+	}
 
   start() {
-    this.#running = true;
-	  this.#canvas.width = this.video.videoWidth;
-	  this.#canvas.height = this.video.videoHeight;
-	  this.do_work();
-    this.video.play();
+	  this.#canvas.width = this.#media.width;
+	  this.#canvas.height = this.#media.height;
+    this.#media.start();
   }
 
   result_to_images_promise(r) {
@@ -142,28 +208,33 @@ export class Segmenter {
 	  });
   }
 
-  do_work() {
-    if (this.#running) {
-      this.#segmentor.extract(this.video)
+
+  handle_image(image) {
+	  this.segmentor.push(this.#myKey, 
+		  image,
+		  (r) => {
+			  if (this.#on_images !== null) {
+				  this.result_to_images_promise(r).then(this.#on_images).catch(this.#onerror);
+			  }
+		  },
+		  (err) => {this.#onerror(err);}
+	  );
+	  /*
+      this.segmentor.extract(image)
 	    .then((r) => { 
 		    // Do stuff with the result
-		    if (this.#on_result_callback !== null) {
+		    if (this.#on_images!== null) {
 			    this.result_to_images_promise(r)
-			    .then(this.#on_result_callback)
-			    .catch((e) => {console.log(e); throw Error("Unable to extract images from segmentation results");});
+			    .then(this.#on_images)
+			    .catch(this.#onerror);
 		    }
-		    setTimeout(() => {this.do_work();}, 0);
 	    })
-	    .catch((e) => {
-		    console.log(e);
-		    throw Error("Unable to perform extraction on the image provided...");
-	    });
-    }
+	    .catch(this.#onerror);
+	    */
   }
 
   stop() {
-    this.#running = false;
-	  this.video.pause();
+	  this.#media.stop();
   }
 }
 

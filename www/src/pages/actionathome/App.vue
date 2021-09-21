@@ -4,70 +4,9 @@
     <div class="absolute top-16 bottom-0 left-0 right-0">
 
       <div v-if="(! video_ready) && (! has_error)">
-        <div class="relative max-w-3xl mx-auto mt-12 lg:mt-24 text-center">
-          <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
-            Select a video from the list below
-          </h2>
-        </div>
-
-        <div class="relative max-w-3xl mx-auto mt-12">
-        <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <li v-for="s in samples"
-              :key="s.video_url"
-              class="col-span-1 flex flex-col text-center bg-white rounded-lg shadow divide-y divide-gray-200">
-            <div class="flex-1 flex flex-col p-2">
-              <img class="h-32 flex-shrink-0 mx-auto rounded-full" :src="s.thumbnail_url" alt="">
-              <dl class="mt-1 flex-grow flex flex-col justify-between">
-                <dd class="text-gray-500 text-sm">{{ s.description }}</dd>
-              </dl>
-            </div>
-            <div>
-              <div class="-mt-px flex divide-x divide-gray-200">
-                <div class="w-0 flex-1 flex">
-                  <a href="#" class="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500" @click="set_video(s.video_url)">
-                    <!-- Heroicon name: solid/play -->
-                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="ml-3">View</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </li>
-
-          <!-- More people... -->
-        </ul>
-        </div>
-
-
-        <div class="relative max-w-3xl mx-auto mt-12 lg:mt-24 text-center">
-          <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
-            Or use your own
-          </h2>
-        </div>
-
-        <div class="relative max-w-xl mx-auto mt-12">
-          <div class="relative text-center mt-12">
-            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-              <div class="space-y-1 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                <div class="flex text-sm text-gray-600">
-                  <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                    <span>Select a file</span>
-                    <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="on_file">
-                  </label>
-                  <p class="pl-1">or drag and drop</p>
-                </div>
-                <p class="text-xs text-gray-500">
-                  MP4 (??? up to ??MB)
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <VideoSelection @error="on_error($event)"
+                        @video-url="set_video($event)">
+        </VideoSelection>
       </div>
 
       <div v-if="is_ready() && (! has_error)">
@@ -79,28 +18,7 @@
       </div>
 
       <div v-if="! is_ready() && video_ready">
-        <div class="max-w-xl mx-auto mt-24">
-          <div class="rounded-md bg-green-50 p-4">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <!-- Heroicon name: solid/check-circle -->
-                <svg class="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <h3 class="text-sm font-medium text-green-800">
-                Processing in process
-                </h3>
-                <div class="mt-2 text-sm text-green-700">
-                  <p>The video is being loaded and the model prepared. Please be patient.<br/>
-                     It will not be very long.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Processing></Processing>
       </div>
 
       <div class="absolute inset-0 bg-gray-800"
@@ -114,34 +32,8 @@
       </div>
   
       <div v-if="has_error">
-        <div class="max-w-xl mx-auto mt-24">
-          <div class="rounded-md bg-red-50 p-4">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <!-- Heroicon name: solid/x-circle -->
-                <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <h3 class="text-sm font-medium text-red-800">
-                An error occured whilst processing the page
-                </h3>
-                <div class="mt-2 text-sm text-red-700">
-                  <ul role="list" class="list-disc pl-5 space-y-1">
-                    <li>
-                      Error message: {{ error_message }}
-                    </li>
-                    <li v-if="error !== null">
-                      Error: {{ error }}
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        <Error :error="error" :error_message="error_message"></Error>
+     </div>
     </div>
 
     <!-- hidden elements -->
@@ -152,27 +44,20 @@
 </template>
 
 <script>
+import Error from "@/components/error";
 import Navbar from "@/components/navbar";
-// import Renderer from "@/components/renderer";
-// import ImageExtraction from "@/lib/image_extraction";
-import { Segmenter, Segmentor } from "@/lib/segmenter/segmenter.js";
+import Processing from "@/components/processing";
+import VideoSelection from "@/components/VideoSelection";
+import { Segmenter } from "@/lib/segmenter/segmenter.js";
 import { Webcam } from "@/lib/segmenter/webcam.js";
-
-const samples = [
-  {description: "Demonstration video used in tutorial on manipulating video using canvas - how to perform chroma-keying using JavaScript code.",
-   source_url: "https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Manipulating_video_using_canvas",
-   video_url: "/assets/videos/video.mp4",
-   thumbnail_url: "/assets/videos/thumbnail.png" },
-  {description: "John Bishop - We have to trust Boris, John Bishop shares his thoughts on Corona Virus and the UK government",
-   source_url: "https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Manipulating_video_using_canvas",
-   video_url: "https://d39ntp7mtoszgk.cloudfront.net/001_JohnBishop-WeHaveToTrustBoris/video.mp4",
-   thumbnail_url: "https://d39ntp7mtoszgk.cloudfront.net/001_JohnBishop-WeHaveToTrustBoris/thumbnail.png"}
-];
 
 export default {
   name: "App",
   components: {
+    Error,
     Navbar,
+    Processing,
+    VideoSelection,
   },
 
   data: function() {
@@ -180,8 +65,6 @@ export default {
       has_error: false,
       error_message: null,
       error: null,
-
-      segmentor: null,
 
       segmenter_video: null,
 
@@ -194,10 +77,7 @@ export default {
       is_playing: false,
 
       background_bitmap: null,
-      foreground_bitmap: null,
-
-      samples
-
+      foreground_bitmap: null
     };
   },
 
@@ -209,21 +89,20 @@ export default {
 
     this.is_playing = false;
 
-    this.segmentor = new Segmentor();
-
     this.webcam = new Webcam({audio: false, video: {facingMode: "environment"}});
     this.webcam.oncanplay = () => {
           this.webcam_ready = true;
           this.resize();
 }
-    this.webcam.on_result = (bmp) => {this.background_bitmap = bmp;};
+    this.webcam.onimage = (bmp) => {this.background_bitmap = bmp;};
+    this.webcam.onerror = (e) => {this.on_error("Error in webcam", e);};
     this.webcam.load()
     .catch((e) => {this.on_error("Unable to load the webcam", e);});
 
     const url = new URL(window.location);
     if (url.searchParams.has("video")) {
       console.log("Load video " + url.searchParams.get("video"));
-      this.segmenter_video = Segmenter.from_url(url.searchParams.get("video"), this.segmentor);
+      this.set_video(url.searchParams.get("video"));
     }
   },
 
@@ -328,23 +207,9 @@ export default {
      */
     do_model_warmup: function() {
       if (! this.model_ready) {
-        this.segmentor.extract(document.getElementById("model-warmup-image"))
+        this.segmenter_video.segmentor.extract(document.getElementById("model-warmup-image"))
         .then(() => {this.model_ready = true; console.log("model warmup successful");})
         .catch((e) => {this.on_error("Model warmup failed", e);});
-      }
-    },
-
-    /*
-     * When a file is selected
-     */
-    on_file: function(evt) {
-      const files = evt.target.files;
-      if (files.length > 1) {
-        this.on_error("Multiple files have been selected", null);
-      } else if (! (files[0].type.match(/video\/mp4/))) {
-        this.on_error(`Selected file is of type ${files[0].type} which is not a supported file type. Supported file types are video/mp4`, null);
-      } else {
-        this.set_video(URL.createObjectURL(files[0]));
       }
     },
 
@@ -359,6 +224,7 @@ console.log("set video to ", url);
         this.video().crossOrigin = "anonymous";
       }
       this.video().appendChild(source);
+
       this.video().oncanplay = () => {
         console.log("video oncanplay");
         this.video_ready = true;
@@ -375,10 +241,9 @@ console.log("set video to ", url);
       };
       this.video().load();
 
-      this.segmenter_video = Segmenter.from_video(this.video(), this.segmentor);
-      this.segmenter_video.on_result = (r) => {
-        this.foreground_bitmap = r.foreground;
-      };
+      this.segmenter_video = Segmenter.from_video(this.video());
+      this.segmenter_video.on_images = (r) => { this.foreground_bitmap = r.foreground; };
+      this.segmenter_video.onerror = this.on_error;
     },
 
     /*
