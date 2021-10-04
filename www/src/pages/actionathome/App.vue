@@ -2,8 +2,7 @@
   <div id="app">
     <Navbar></Navbar>
     <div class="absolute top-16 bottom-0 left-0 right-0">
-
-      <div v-if="(! video_ready) && (! has_error)">
+      <div class="mb-12" v-if="(! video_ready) && (! has_error)">
         <VideoSelection @error="on_error($event)"
                         @video-url="set_video($event)">
         </VideoSelection>
@@ -17,7 +16,7 @@
         </div>
       </div>
 
-      <div v-if="! is_ready() && video_ready">
+      <div class="mb-12" v-if="! is_ready() && video_ready">
         <Processing></Processing>
       </div>
 
@@ -31,21 +30,25 @@
         <video controls id="video-feed"></video>
       </div>
   
-      <div v-if="has_error">
+      <div class="mb-12" v-if="has_error">
         <Error :error="error" :error_message="error_message"></Error>
      </div>
+
+      <BespokeFooter></BespokeFooter>
     </div>
 
     <!-- hidden elements -->
     <div class="hidden">
       <img src="/assets/images/thispersondoesnotexist.jfif" id="model-warmup-image" />
     </div>
+
   </div>
 </template>
 
 <script>
 import Error from "@/components/error";
 import Navbar from "@/components/navbar";
+import BespokeFooter from "@/components/bespokefooter";
 import Processing from "@/components/processing";
 import VideoSelection from "@/components/VideoSelection";
 import { Segmenter } from "@/lib/segmenter/segmenter.js";
@@ -55,6 +58,7 @@ export default {
   name: "App",
   components: {
     Error,
+    BespokeFooter,
     Navbar,
     Processing,
     VideoSelection,

@@ -53,10 +53,10 @@
                     <span>Select a file</span>
                     <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="on_file">
                   </label>
-                  <p class="pl-1">or drag and drop</p>
+                  <!-- <p class="pl-1">or drag and drop</p> -->
                 </div>
                 <p class="text-xs text-gray-500">
-                  MP4 (??? up to ??MB)
+                  MP4 (1 file up to 50MB)
                 </p>
               </div>
             </div>

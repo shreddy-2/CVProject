@@ -48,12 +48,14 @@ export class Webcam {
 		  navigator.mediaDevices.getUserMedia(this.#options)
 		  .then((media_stream) => {
 			  this.#media_stream = media_stream;
-			  this.#userFacing = media_stream.getVideoTracks()[0].getCapabilities().facingMode.includes('user');
-			  console.log(this.#userFacing ? "User facing" : "Environment facing");
-			// console.log(this.#media_stream);
-			  // console.log(this.#media_stream.getVideoTracks());
-			  // console.log(this.#media_stream.getVideoTracks()[0]);
-			  // console.log(this.#media_stream.getVideoTracks()[0].getCapabilities());
+			  // this.#userFacing = media_stream.getVideoTracks()[0].getSettings().facingMode.includes('user');
+			  const settings = media_stream.getVideoTracks()[0].getSettings();
+			  if (settings.facingMode === undefined) {
+				  this.#userFacing = true; // This is an assumption
+			  } else {
+				  this.#userFacing = settings.facingMode.includes('user');
+			  }
+
 			  this.#video.srcObject = media_stream;
 			  this.#video.oncanplay = () => {
 				  if (this.#oncanplay !== null) {this.#oncanplay();}
@@ -69,14 +71,6 @@ export class Webcam {
 
 	isUserFacing() {
 		return this.#userFacing;
-		/*
-		if (this.#media_stream !== null) {
-			// console.log(this.#media_stream);
-			  // console.log(this.#media_stream.getVideoTracks()[0].getCapabilities());
-			return this.#media_stream.getVideoTracks()[0].getCapabilities().facingMode.includes('user');
-		}
-		return false;
-		*/
 	}
 
 	start() {

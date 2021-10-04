@@ -4,9 +4,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center">
+<!--
           <div class="flex-shrink-0 rounded-md border-2 border-purple-900 px-3 py-2">
             V-M
           </div>
+-->
           <div class="hidden sm:block sm:ml-6">
             <div class="flex space-x-4">
               <a v-for="p in pages"
@@ -88,8 +90,8 @@ export default {
       pages: [
         {label: "Home", url: "/index.html", isCurrent: false, isDefault: true},
         {label: "Demo", url: "/demo.html", isCurrent: false, isDefault: false},
-        {label: "Insert me in the video", url: "/insertme.html", isCurrent: false, isDefault: false},
-        {label: "View action at home", url: "/actionathome.html", isCurrent: false, isDefault: false},
+        {label: "Video bombing", url: "/insertme.html", isCurrent: false, isDefault: false},
+        {label: "Action transposing", url: "/actionathome.html", isCurrent: false, isDefault: false},
       ],
       mobile_menu_open: false
     };
