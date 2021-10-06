@@ -16,6 +16,13 @@
       <button type="button" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" @click="load()">
           Load
       </button>
+
+      <div class="mt-12 mb-12" v-if="videos.length > 0">
+        <div v-for="v in videos"
+             :key="v.url">
+          <div>{{ v.mimeType }} - {{ v.quality }} - audio: {{ v.hasAudio }} - video: {{ v.hasVideo }} <a href="#" @click="on_video(v)">View</a></div>
+        </div>
+      </div>
       
       <div :class="{hidden: ! has_video_url}">
         <video controls id="video"></video>
@@ -37,6 +44,7 @@ export default {
   data: function() {
     return {
       youtube_url: null,
+      videos: [],
       has_video_url: false,
     };
   },
@@ -47,7 +55,7 @@ export default {
   methods: {
     load: function() {
       Video.from_YouTube(this.youtube_url)
-      .then(video => {this.on_video(video);})
+      .then(videos => {console.log("videos: ", videos); this.videos = videos; })
       .catch(e => {this.on_error("Unable to find youtube url", e);});
     },
 
@@ -63,6 +71,7 @@ export default {
     video: function() {
       return document.getElementById('video');
     },
+
     on_error: function(msg, e) {
       console.log("Error: ", msg, e);
     }

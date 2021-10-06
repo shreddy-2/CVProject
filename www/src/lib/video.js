@@ -13,6 +13,9 @@ class Video {
   #durationInSeconds;
   #playerUrl;
   #fileUrl;
+	#hasVideo;
+	#hasAudio;
+	#mimeType;
 
   constructor(h) {
     this.#id = h.id;
@@ -23,12 +26,19 @@ class Video {
     this.#durationInSeconds = h.durationInSeconds;
     this.#playerUrl = h.playerUrl;
     this.#fileUrl = h.fileUrl;
+	  this.#hasVideo = h.hasVideo;
+	  this.#hasAudio = h.hasAudio;
+	  this.#mimeType = h.mimeType;
   }
 
   get title()             {return this.#title;}
   get durationInSeconds() {return this.#durationInSeconds;}
   get info()              {return {title: this.#title, duration: this.#durationInSeconds};}
   get url()               {return this.#fileUrl;}
+  get quality()           {return this.#quality;}
+	get hasVideo() { return this.#hasVideo;}
+	get hasAudio() { return this.#hasAudio;}
+	get mimeType() { return this.#mimeType;}
 
 
 	/*
@@ -57,9 +67,11 @@ function from_YouTube(videoId) {
     .then((data) => {
       console.log("Data from yt2html5: ", data);
       const details = data.data.data.videoDetails;
-      const f = data.data.data.formats.find((f) => (f.qualityLabel === "720p") && f.hasVideo && f.hasAudio);
-      if (f === undefined) {reject(`Unable to retrieve 720p video for video id ${videoId}.`);}
-      let video = new Video({
+
+      let videos = data.data.data.formats
+	    .map((f) => {
+	      console.log("f -> ", f);
+	      return new Video({
 	    id: videoId,
 	    title: details.title,
 	    quality: f.qualityLabel,
@@ -67,9 +79,16 @@ function from_YouTube(videoId) {
 	    height: f.height,
 	    durationInSeconds: details.lengthSeconds,
 	    playerUrl: details.video_url,
-	    fileUrl: f.url
-      });
-      resolve(video);
+	    fileUrl: f.url,
+		hasVideo: f.hasVideo,
+		hasAudio: f.hasAudio,
+		mimeType: f.mimeType
+        });});
+	    /*
+      const f = data.data.data.formats.find((f) => (f.qualityLabel === "720p") && f.hasVideo && f.hasAudio);
+      if (f === undefined) {reject(`Unable to retrieve 720p video for video id ${videoId}.`);}
+      */
+      resolve(videos);
    })
    .catch(reject);
   });

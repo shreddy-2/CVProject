@@ -73,9 +73,17 @@ const samples = [
    video_url: "/assets/videos/video.mp4",
    thumbnail_url: "/assets/videos/thumbnail.png" },
   {description: "John Bishop - We have to trust Boris, John Bishop shares his thoughts on Corona Virus and the UK government",
-   source_url: "https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Manipulating_video_using_canvas",
-   video_url: "https://d39ntp7mtoszgk.cloudfront.net/001_JohnBishop-WeHaveToTrustBoris/video.mp4",
-   thumbnail_url: "https://d39ntp7mtoszgk.cloudfront.net/001_JohnBishop-WeHaveToTrustBoris/thumbnail.png"}
+   source_url: "https://www.youtube.com/watch?v=OOSyTiFRgYU",
+   video_url: "https://cdn.video-mash.com/001_JohnBishop-WeHaveToTrustBoris/video.mp4",
+   thumbnail_url: "https://cdn.video-mash.com/001_JohnBishop-WeHaveToTrustBoris/thumbnail.png"},
+  {description: "Charlie Chaplin - Final Speech from The Great Dictator",
+   source_url: "https://www.youtube.com/watch?v=J7GY1Xg6X20",
+   video_url: "https://cdn.video-mash.com/002_CharlieChaplin-FinalSpeechfromTheGreatDictator/video.mp4",
+   thumbnail_url: "https://cdn.video-mash.com/002_CharlieChaplin-FinalSpeechfromTheGreatDictator/thumbnail.png"},
+  {description: "Jonathan Pie - A Fake News Annoucement",
+   source_url: "https://www.youtube.com/watch?v=0ciHqupvElM",
+   video_url: "https://cdn.video-mash.com/003_JonathanPie-AFakeNewsAnnouncement/video.mp4",
+   thumbnail_url: "https://cdn.video-mash.com/003_JonathanPie-AFakeNewsAnnouncement/thumbnail.png"}
 ];
 
 
