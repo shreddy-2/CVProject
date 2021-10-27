@@ -21,6 +21,7 @@ export class Webcam {
 		this.#userFacing = false;
 
 		this.#video = document.createElement('video');
+		this.#video.muted = true;
 		this.#video.style.display = 'none';
 		document.body.appendChild(this.#video);
 
@@ -36,18 +37,22 @@ export class Webcam {
 		this.#canvas.remove();
 	}
 
-	get width() {return this.#video.videoWidth;}
-	get height() {return this.#video.videoHeight;}
+	get audio_track() { 
+		return (this.#media_stream ? this.#media_stream.getAudioTracks()[0] : null);
+	}
+	get width()      { return this.#video.videoWidth;}
+	get height()     { return this.#video.videoHeight;}
 	set oncanplay(f) { this.#oncanplay = f; }
 	set on_result(f) { this.#onimage = f; }
-	set onimage(f) { this.#onimage = f; }
-	set onerror(f) { this.#onerror = f; }
+	set onimage(f)   { this.#onimage = f; }
+	set onerror(f)   { this.#onerror = f; }
 
 	load() {
 		return new Promise((resolve, reject) => {
 		  navigator.mediaDevices.getUserMedia(this.#options)
 		  .then((media_stream) => {
 			  this.#media_stream = media_stream;
+			  console.log("audio tracks:", media_stream.getAudioTracks());
 			  // this.#userFacing = media_stream.getVideoTracks()[0].getSettings().facingMode.includes('user');
 			  const settings = media_stream.getVideoTracks()[0].getSettings();
 			  if (settings.facingMode === undefined) {
@@ -98,7 +103,7 @@ export class Webcam {
 			const data = ctx.getImageData(0, 0, this.#canvas.width, this.#canvas.height);
 			createImageBitmap(data)
 			.then((bmp) => {
-				if (this.#onimage !== null) {this.#onimage(bmp);}
+				if (this.#onimage !== null) {this.#onimage({image: bmp});}
 				setTimeout(() => {this.run();}, 0);
 			})
 			.catch(this.#onerror);

@@ -5,5 +5,6 @@ module.exports = {
     insertme:     "src/pages/insertme/main.js",
     actionathome: "src/pages/actionathome/main.js",
     ytdl:         "src/pages/ytdl/main.js",
+    weatherforecast: "src/pages/weatherforecast/main.js",
   },
 };

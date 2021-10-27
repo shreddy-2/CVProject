@@ -90,6 +90,7 @@ export default {
       pages: [
         {label: "Home", url: "/index.html", isCurrent: false, isDefault: true},
         {label: "Demo", url: "/demo.html", isCurrent: false, isDefault: false},
+        {label: "Weather forecast", url: "/weatherforecast.html", isCurrent: false, isDefault: false},
         {label: "Video bombing", url: "/insertme.html", isCurrent: false, isDefault: false},
         {label: "Action transposing", url: "/actionathome.html", isCurrent: false, isDefault: false},
       ],

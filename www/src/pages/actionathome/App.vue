@@ -8,27 +8,40 @@
         </VideoSelection>
       </div>
 
-      <div v-if="is_ready() && (! has_error)">
-        <div class="relative max-w-3xl mx-auto pt-12 lg:pt-24 text-center">
-          <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
-            Video playing
-          </h2>
-        </div>
-      </div>
-
-      <div class="mb-12" v-if="! is_ready() && video_ready">
+      <div class="mb-12" v-if="(! is_ready()) && (video != null) && (! has_error)">
         <Processing></Processing>
       </div>
 
-      <div class="absolute inset-0 bg-gray-800"
-           :class="{'hidden': (! is_ready()) || has_error }">
-        <canvas class="object-none mx-auto my-auto bg-gray-500" id="canvas-renderer"></canvas>
+      <div class="absolute inset-0 bg-gray-800" v-if="is_ready()">
+        <SegmenterPlayer
+          :image_back="image_back"
+          :image_middle="null"
+          :image_front="image_front"
+          :audio_track="video.media.audio_track"
+          :controls="true"
+          :allow_recording="true"
+          :video_current_time="video.media.media.currentTime"
+          :video_duration="video.media.media.duration"
+          @on_record="record()"
+          @on_start="start()"
+          @on_stop="stop()"
+          @on_restart="video.media.media.currentTime = 0;"
+          @onerror="on_error('Error in segmenter player', $event)"
+          ref="segmenter_player"
+          >
+        </SegmenterPlayer>
       </div>
 
+      <div class="fixed top-1 right-1" v-if="is_recording && (! has_error)">
+        <div class="animate-pulse text-red-600 text-lg font-bold">recording</div>
+      </div>
+
+<!--
       <div class="absolute top-0.5 right-0.5 w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5"
            :class="{'hidden': (! is_ready()) || has_error }">
         <video controls id="video-feed"></video>
       </div>
+-->
   
       <div class="mb-12" v-if="has_error">
         <Error :error="error" :error_message="error_message"></Error>
@@ -37,11 +50,23 @@
       <BespokeFooter></BespokeFooter>
     </div>
 
-    <!-- hidden elements -->
-    <div class="hidden">
-      <img src="/assets/images/thispersondoesnotexist.jfif" id="model-warmup-image" />
-    </div>
-
+    <SegmenterMedia 
+        :media="video"
+        @onimage="image_front = $event.foreground;"
+        @onready="video_ready = true; video_duration = video.media.duration;"
+        @onerror="on_error('Error loading video', $event)"
+        v-if="video != null"
+        >
+    </SegmenterMedia>
+    <SegmenterMedia 
+        :media="webcam"
+        @onimage="image_back = $event.image;"
+        @onready="webcam_ready = true;"
+        @onerror="on_error('Error loading webcam', $event)"
+        v-if="webcam != null"
+        >
+    </SegmenterMedia>
+ 
   </div>
 </template>
 
@@ -51,7 +76,10 @@ import Navbar from "@/components/navbar";
 import BespokeFooter from "@/components/bespokefooter";
 import Processing from "@/components/processing";
 import VideoSelection from "@/components/VideoSelection";
+import SegmenterMedia from "@/lib/segmenter/segmentermedia";
+import SegmenterPlayer from "@/lib/segmenter/segmenterplayer";
 import { Segmenter } from "@/lib/segmenter/segmenter.js";
+import { Video } from "@/lib/segmenter/video.js";
 import { Webcam } from "@/lib/segmenter/webcam.js";
 
 export default {
@@ -62,6 +90,8 @@ export default {
     Navbar,
     Processing,
     VideoSelection,
+    SegmenterMedia,
+    SegmenterPlayer,
   },
 
   data: function() {
@@ -70,38 +100,29 @@ export default {
       error_message: null,
       error: null,
 
-      segmenter_video: null,
-
+      video: null,
+      video_ready: false,
       webcam: null,
       webcam_ready: false,
 
-      video_ready: false,
-      model_ready: false,
-
       is_playing: false,
+      is_recording: false,
 
-      background_bitmap: null,
-      foreground_bitmap: null
+      image_back: null,
+      image_front: null
     };
   },
 
   mounted: function() {
     this.has_error = false;
 
-    this.model_ready = false;
+    this.video = null;
+    this.webcam = new Segmenter(new Webcam({audio: false, video: {facingMode: "environment"}}));
+    this.video_ready = false;
     this.webcam_ready = false;
 
     this.is_playing = false;
-
-    this.webcam = new Webcam({audio: false, video: {facingMode: "environment"}});
-    this.webcam.oncanplay = () => {
-          this.webcam_ready = true;
-          this.resize();
-}
-    this.webcam.onimage = (bmp) => {this.background_bitmap = bmp;};
-    this.webcam.onerror = (e) => {this.on_error("Error in webcam", e);};
-    this.webcam.load()
-    .catch((e) => {this.on_error("Unable to load the webcam", e);});
+    this.is_recording = false;
 
     const url = new URL(window.location);
     if (url.searchParams.has("video")) {
@@ -112,89 +133,10 @@ export default {
 
   methods: {
     /*
-     * Resize
+     * Assign video url
      */
-    resize: function() {
-      console.log("Resize");
-      let c = this.renderer();
-      let w = c.parentNode.clientWidth;
-      let h = c.parentNode.clientHeight;
-
-      const ar = this.webcam.width / this.webcam.height;
-      console.log("Video w/h", this.webcam.width, this.webcam.height);
-
-      if (ar < w/h) {
-        c.width = ar * h;
-        c.height = h;
-      } else {
-        c.width = w;
-        c.height = w / ar;
-      }
-    },
-
-    /*
-     * Accessor to canvas used for rendering
-     */
-    renderer: function() {return document.getElementById("canvas-renderer"); },
-
-    /*
-     * Accessor to video feed element
-     */
-    video: function() {return document.getElementById("video-feed");},
-
-    /*
-     * Render available images
-     */
-    render: function() {
-      this.is_playing = ! (this.video().paused || this.video().ended);
-
-      if (! this.is_playing || this.has_error) {
-        // Stop playing
-        this.segmenter_video.stop();
-        this.webcam.stop();
-      }
-
-      if (this.is_playing && ! this.has_error) {
-        var c = this.renderer();
-        var ctx = c.getContext('2d');
-        ctx.clearRect(0, 0, c.width, c.height);
-
-        if (this.background_bitmap) {
-            ctx.drawImage(this.background_bitmap, 0, 0, c.width, c.height);
-        }
-
-        // if (this.insert_bitmap) {ctx.drawImage(this.insert_bitmap, 0, 0, c.width, c.height);}
-
-        if (this.foreground_bitmap) { 
-          const r = this.fit_image(this.foreground_bitmap, c);
-          ctx.drawImage(this.foreground_bitmap, 
-                        0.5*(c.width - r.width), c.height - r.height, 
-                        r.width, r.height); 
-        }
-        window.requestAnimationFrame(() => {this.render();});
-      }
-    },
-
-    /*
-     * Retrieve width and height to fit into a target {width: xyz, height: xyz}
-     * input:
-     *   - image: object of type ImageBitmap
-     *   - target: object containing container with/height as {width: xyz, height: xyz}
-     * Output:
-     *    {width: abc, height: abc}
-     */
-    fit_image: function(image, target) {
-      if ((Math.abs(target.width) < 1e-3) || (Math.abs(target.height) < 1e-3)) { return {width: 0, height: 0}; }
-
-      const w = image.width; const h = image.height; const ar = w / h;
-      const ar_t = target.width / target.height;
-      if (ar < ar_t) {
-        return {height: target.height,
-                width: w / h * target.height};
-      } else {
-        return {height: h / w * target.width,
-                width: target.width};
-      }
+    set_video: function(url) {
+      this.video = new Segmenter(new Video(url));
     },
 
     /*
@@ -202,67 +144,50 @@ export default {
      */
     is_ready: function() {
       return this.video_ready &&
-             this.model_ready &&
-             this.webcam_ready;
+             this.webcam_ready &&
+             ! this.has_error;
     },
 
     /*
-     * Load and warmup model
+     * Start recording
      */
-    do_model_warmup: function() {
-      if (! this.model_ready) {
-        this.segmenter_video.segmentor.extract(document.getElementById("model-warmup-image"))
-        .then(() => {this.model_ready = true; console.log("model warmup successful");})
-        .catch((e) => {this.on_error("Model warmup failed", e);});
-      }
+    record: function() {
+      this.webcam.start();
+      this.video.start();
+      this.$refs.segmenter_player.record();
+      this.is_playing = true;
+      this.is_recording = true;
     },
 
     /*
-     * Assign video url
+     * Start
      */
-    set_video: function(url) {
-console.log("set video to ", url);
-      let source = document.createElement('source');
-      source.setAttribute('src', url);
-      if ((new URL(url, window.location.href)).origin !== window.location.origin) {
-        this.video().crossOrigin = "anonymous";
-      }
-      this.video().appendChild(source);
+    start: function() {
+      this.webcam.start();
+      this.video.start();
+      this.$refs.segmenter_player.start();
+      this.is_playing = true;
+      this.is_recording = false;
+    },
 
-      this.video().oncanplay = () => {
-        console.log("video oncanplay");
-        this.video_ready = true;
-        this.do_model_warmup();
-      };
-      this.video().onplay = () => {
-        console.log("video onplay");
-        this.is_playing = true;
-        this.resize();
-        window.onresize = () => {this.resize();};
-        this.webcam.start();
-        this.segmenter_video.start();
-        this.render();
-      };
-      this.video().load();
-
-      this.segmenter_video = Segmenter.from_video(this.video());
-      this.segmenter_video.on_images = (r) => { this.foreground_bitmap = r.foreground; };
-      this.segmenter_video.onerror = this.on_error;
+    stop: function() {
+      this.is_recording = false;
+      this.is_playing = false;
+      this.$refs.segmenter_player.stop();
+      this.video.stop();
+      this.webcam.stop();
     },
 
     /*
      * Handle error message
      */
     on_error: function(msg, e) {
-      console.log("Error: ", msg, "Error: ", e);
       this.has_error = true;
       this.error_message = msg;
       this.error = e;
-      this.is_playing = false;
+      this.stop();
     }
-    
   }
-  
 };
 </script>
 

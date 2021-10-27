@@ -3,7 +3,7 @@
  */
 
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
-import { Video } from "./video";
+import { get_thispersondoesnotexist_image } from "./thispersondoesnotexist.js";
 
 function get_background_bitmap(canvas, image, mask) {
       const ctx = canvas.getContext('2d');
@@ -30,18 +30,18 @@ function get_foreground_bitmap(canvas, image, mask) {
 }
 
 class Segmentor {
-  #selfie_segmentation;
+        #selfie_segmentation;
 	#processing;
 	#keys;
 	#store;
 
-  constructor() {
-    this.#selfie_segmentation = new SelfieSegmentation({locateFile: (file) => {return `/assets/mediapipe/selfie_segmentation/${file}`;}});
-    this.#selfie_segmentation.setOptions({ modelSelection: 1 });
+        constructor() {
+          this.#selfie_segmentation = new SelfieSegmentation({locateFile: (file) => {return `/assets/mediapipe/selfie_segmentation/${file}`;}});
+          this.#selfie_segmentation.setOptions({ modelSelection: 1 });
 	  this.#processing = false;
 	  this.#store = {};
 	  this.#keys = [];
-  }
+        }
 
 	push(key, image, onimages, onerror) {
 		if (! (key in this.#store)) {
@@ -75,19 +75,17 @@ class Segmentor {
 		}
 	}
 
-  async extract(image) {
+        async extract(image) {
 	  console.log("Segmentor:extract", image);
-var res = null;
+          var res = null;
 	  console.log("Segmentor:extract (2)", res);
-this.#selfie_segmentation.onResults((r) => {res = r;});
-await this.#selfie_segmentation.send({image});
+          this.#selfie_segmentation.onResults((r) => {res = r;});
+          await this.#selfie_segmentation.send({image});
 	  console.log("Segmentor:extract (3)", res);
-if (res === null) {
-throw Error("Unable to perform extraction on the image provided");
-}
+          if (res === null) { throw Error("Unable to perform extraction on the image provided"); }
 	  console.log("Segmentor:extract (4)", res);
-    return res;
-  }
+          return res;
+        }
 };
 
 
@@ -104,10 +102,12 @@ export class Segmenter {
   */
 
 
+	/*
 	static from_media(media) {
 		const segmenter = new Segmenter(media);
 		return segmenter;
 	}
+	*/
 
 	/*
   static from_url(url, segmentor = null) {
@@ -126,11 +126,13 @@ export class Segmenter {
   }
   */
 
+	/*
   static from_video(video) {
     const segmenter = new Segmenter(new Video(video));
     // segmenter.load();
     return segmenter;
   }
+  */
 
 	static #key = 0;
 	static get_key() {
@@ -139,103 +141,107 @@ export class Segmenter {
 	}
 
 
-  static #segmentor = null;
+        static #segmentor = null;
 
 	#myKey;
-  #media;
+        #media;
 	#canvas;
 
-  #on_images;
+        #onimage;
 	#onerror;
 
-  constructor(media) {
+        constructor(media) {
 	  this.#myKey = Segmenter.get_key();
-    this.#on_images = null;
+          this.#onimage = null;
 	  this.#onerror = (e) => {console.log(e); throw Error("Error in Segmenter");};
 
-    this.#media = media;
-	  this.#media.onimage = (image) => {this.handle_image(image); }
+          this.#media = media;
+	  this.#media.onimage = (r) => {this.handle_image(r.image); }
 
 	  this.#canvas = document.createElement('canvas');
-	    this.#canvas.style.display = 'none';
-	    document.body.appendChild(this.#canvas);
-  }
+	  this.#canvas.style.display = 'none';
+	  document.body.appendChild(this.#canvas);
+        }
 
-  destroy() {
+        destroy() {
 	  this.#media.destroy();
 	  this.#canvas.remove();
-  }
+        }
 
-	get segmentor() {
-		if (Segmenter.#segmentor === null) {
-			Segmenter.#segmentor = new Segmentor();
-		}
-		return Segmenter.#segmentor;
-	}
-
-  set on_result(f) { this.#on_images = f; }
-  set on_images(f) { this.#on_images = f; }
+	get media()      { return this.#media; }
+	get width()      { return this.#media.width; }
+	get height()     { return this.#media.height; }
+	set oncanplay(f) { this.#media.oncanplay = f; }
+        set onimage(f)   { this.#onimage = f; }
 	set onerror(f) { 
 		this.#onerror = f; 
 		this.#media.onerror = f;
 	}
 
-	load() {
-		return this.#media.load();
+	#media_loaded;
+	#segmentor_loaded;
+	#segmentor_load_error;
+
+
+	load() { 
+		this.#media_loaded = false;
+		this.#segmentor_loaded = false;
+		return new Promise((resolve, reject) => {
+			let image = get_thispersondoesnotexist_image();
+			this.segmentor.push(this.#myKey,
+				image,
+				() => { this.#segmentor_loaded = true; if (this.loaded()) {resolve();}; },
+				(e) => { this.#segmentor_loaded = false; reject(e); }
+			);
+		        this.#media.load()
+			.then(() => { this.#media_loaded = true; if (this.loaded()) {resolve();}; })
+			.catch((e) => { this.#media_loaded = false; reject(e); });
+		});
 	}
 
-  start() {
+	loaded() { return this.#segmentor_loaded && this.#media_loaded; }
+
+        start() {
 	  this.#canvas.width = this.#media.width;
 	  this.#canvas.height = this.#media.height;
-    this.#media.start();
-  }
+          this.#media.start();
+        }
 
-  result_to_images_promise(r) {
+        stop() {
+	  this.#media.stop();
+        }
+
+	//
+	get segmentor() {
+		if (Segmenter.#segmentor === null) { Segmenter.#segmentor = new Segmentor(); }
+		return Segmenter.#segmentor;
+	}
+
+        handle_image(image) {
+	  this.segmentor.push(this.#myKey, 
+		  image,
+		  (r) => {
+			  if (this.#onimage !== null) {
+				  this.result_to_images_promise(r).then(this.#onimage).catch(this.#onerror);
+			  }
+		  },
+		  (err) => {this.#onerror(err);}
+	  );
+        }
+
+        result_to_images_promise(r) {
 	  return new Promise((resolve, reject) => {
 		  get_foreground_bitmap(this.#canvas, r.image, r.segmentationMask)
 		  .then((foreground) => {
 			  get_background_bitmap(this.#canvas, r.image, r.segmentationMask)
 			  .then((background) => {
-				  resolve({
-					  image: r.image,
-					  foreground,
-					  background
-				  });
+				  resolve({ image: r.image, foreground, background });
 			  })
 			  .catch(reject);
 		  })
 		  .catch(reject);
 	  });
-  }
-
-
-  handle_image(image) {
-	  this.segmentor.push(this.#myKey, 
-		  image,
-		  (r) => {
-			  if (this.#on_images !== null) {
-				  this.result_to_images_promise(r).then(this.#on_images).catch(this.#onerror);
-			  }
-		  },
-		  (err) => {this.#onerror(err);}
-	  );
-	  /*
-      this.segmentor.extract(image)
-	    .then((r) => { 
-		    // Do stuff with the result
-		    if (this.#on_images!== null) {
-			    this.result_to_images_promise(r)
-			    .then(this.#on_images)
-			    .catch(this.#onerror);
-		    }
-	    })
-	    .catch(this.#onerror);
-	    */
-  }
-
-  stop() {
-	  this.#media.stop();
-  }
+        }
 }
 
 export default {

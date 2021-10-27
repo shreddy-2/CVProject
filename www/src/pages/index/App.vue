@@ -27,6 +27,31 @@ So we went for something a little more fun and less practical using the <a href=
       <div class="max-w-5xl mx-auto mt-12 grid gap-16 pt-12 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-12">
         <div>
           <div>
+            <a href="/weatherforecast.html" class="inline-block">
+              <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+                Weather Forecast
+              </span>
+            </a>
+          </div>
+          <a href="/weatherforecast.html" class="block mt-4">
+            <p class="text-xl font-semibold text-gray-900">
+              Have you ever wanted to present the weather forecast?
+            </p>
+            <p class="mt-3 text-base text-gray-500">
+              This is the opportunity to try out being a weather forecast presenter for today's UK weather.<br/>
+              The segmentation model is used to superimpose you on today's UK <a href="https://www.metoffice.gov.uk/weather/videos">met office weather forecast video</a>. 
+              The weather forecast script is provided
+              alongside the vide to allow you to read it aloud whilst you are presenting it. Record yourself and share the result... and maybe,
+              who knows, you might get spotted and offered the job one day.
+            </p>
+          </a>
+          <div class="mt-6 flex items-center">
+            <a href="/weatherforecast.html">Load the page</a>
+          </div>
+        </div>
+
+        <div>
+          <div>
             <a href="/demo.html" class="inline-block">
               <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
                 Demo
