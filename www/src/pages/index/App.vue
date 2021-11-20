@@ -9,18 +9,11 @@
 
       <div class="max-w-3xl mx-auto mt-12">
         <p class="mt-3 text-base text-gray-500">
-          Similarly to a lot of people, I have been working from home for the best part of the last 18 months. During that time I noticed that during video calls one would point to the screen to show the point they are trying to make. This works great in face to face, but not so much in a video call.
+          I have been working from home for a while and have used MS Teams' blurry background effect.
+I got together with a friend of mine to look at how it was done and how the technique could be applied in other contexts.
         </p>
         <p class="mt-3 text-base text-gray-500">
-I got together with a friend of mine to look at how to overlap someone's image over the screen sharing as a way of allowing for such interaction to take place. The brief included "the setup should be easy so that a dad could install and use it". We looked into it.  The largest hurdle was to create a virtual webcam feed to broadcast the manipulated screen share and webcam feed.
-        </p>
-        <p class="mt-3 text-base text-gray-500">
-MS Teams released the presenter mode feature - see <a href="https://www.theverge.com/2021/3/2/22308927/microsoft-teams-presenter-mode-powerpoint-live-features">this article for example</a>...
-        </p>
-        <p class="mt-3 text-base text-gray-500">
-So we went for something a little more fun and less practical using the <a href="https://google.github.io/mediapipe/solutions/selfie_segmentation.html">selfie segmentation model from MediaPipe</a>, a model that "segment the prominent humans in the scene". It is used in different fashion to demonstrate how it can be combined for different effects.
-        </p>
-        <p class="mt-3 text-base text-gray-500">
+This website uses the <a href="https://google.github.io/mediapipe/solutions/selfie_segmentation.html">selfie segmentation model from MediaPipe</a>, a model that "segment the prominent humans in the scene". It is used in different fashion to demonstrate how it can be combined for different effects.
         </p>
       </div>
 
@@ -28,14 +21,37 @@ So we went for something a little more fun and less practical using the <a href=
         <div>
           <div>
             <a href="/weatherforecast.html" class="inline-block">
-              <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
+              <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                Ghosting
+              </span>
+            </a>
+          </div>
+          <a href="/ghosting.html" class="block mt-4">
+            <p class="text-xl font-semibold text-gray-900">
+              Try video ghosting
+            </p>
+            <p class="mt-3 text-base text-gray-500">
+              This makes for a strange and unsettling effect...<br/>
+              People in the foreground of the video are removed and replaced what's available in the previous frame leaving a trail or an
+              outline of there presence.
+            </p>
+          </a>
+          <div class="mt-6 flex items-center">
+            <a href="/ghosting.html">Load the page</a>
+          </div>
+        </div>
+
+        <div>
+          <div>
+            <a href="/weatherforecast.html" class="inline-block">
+              <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
                 Weather Forecast
               </span>
             </a>
           </div>
           <a href="/weatherforecast.html" class="block mt-4">
             <p class="text-xl font-semibold text-gray-900">
-              Have you ever wanted to present the weather forecast?
+              <i>Work-in-progress</i> - Have you ever wanted to present the weather forecast?
             </p>
             <p class="mt-3 text-base text-gray-500">
               This is the opportunity to try out being a weather forecast presenter for today's UK weather.<br/>

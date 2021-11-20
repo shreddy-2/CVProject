@@ -47,7 +47,7 @@
         <Error :error="error" :error_message="error_message"></Error>
       </div>
 
-      <BespokeFooter></BespokeFooter>
+      <BespokeFooter v-if="! is_ready()"></BespokeFooter>
     </div>
 
     <SegmenterMedia 

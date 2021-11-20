@@ -18,7 +18,9 @@
             <a href="#" @click="$emit('on_restart')" :class="{'hidden': video_current_time < 1}"><IconRewind c="h-10 w-10" /></a>
           </div>
           <div class="flex-auto text-center">
-            {{ to_mmss(video_current_time) }}/{{ to_mmss(video_duration) }}
+            <div v-if="(video_duration !== null)">
+              {{ to_mmss(video_current_time) }}/{{ to_mmss(video_duration) }}
+            </div>
           </div>
           <div class="flex-none flex">
             <!-- Annotation 
@@ -303,6 +305,8 @@ export default {
                           r.width, r.height); 
           }
         }
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText("Made at video-mash.com", 0.5*(c.width - ibf.width) + 2, 0.5*(c.height - ibf.height) + 12);
       }
       window.requestAnimationFrame(this.render);
     },

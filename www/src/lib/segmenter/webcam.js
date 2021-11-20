@@ -52,8 +52,6 @@ export class Webcam {
 		  navigator.mediaDevices.getUserMedia(this.#options)
 		  .then((media_stream) => {
 			  this.#media_stream = media_stream;
-			  console.log("audio tracks:", media_stream.getAudioTracks());
-			  // this.#userFacing = media_stream.getVideoTracks()[0].getSettings().facingMode.includes('user');
 			  const settings = media_stream.getVideoTracks()[0].getSettings();
 			  if (settings.facingMode === undefined) {
 				  this.#userFacing = true; // This is an assumption

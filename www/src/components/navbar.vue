@@ -89,10 +89,11 @@ export default {
     return {
       pages: [
         {label: "Home", url: "/index.html", isCurrent: false, isDefault: true},
-        {label: "Demo", url: "/demo.html", isCurrent: false, isDefault: false},
+        {label: "Ghosting", url: "/ghosting.html", isCurrent: false, isDefault: false},
         {label: "Weather forecast", url: "/weatherforecast.html", isCurrent: false, isDefault: false},
         {label: "Video bombing", url: "/insertme.html", isCurrent: false, isDefault: false},
         {label: "Action transposing", url: "/actionathome.html", isCurrent: false, isDefault: false},
+        {label: "Demo", url: "/demo.html", isCurrent: false, isDefault: false},
       ],
       mobile_menu_open: false
     };
