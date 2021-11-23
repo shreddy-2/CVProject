@@ -32,7 +32,7 @@ export class Webcam {
 
 			this.#running = false;
 		} catch (e) {
-			this.#onerror(e);
+			this.#onerror({from: "webcam.constructor", err: e});
 		}
 	}
 
@@ -86,7 +86,7 @@ export class Webcam {
 			this.#running = true;
 			this.run();
 		} catch (e) {
-			this.#onerror(e);
+			this.#onerror({from: "webcam.start", err: e});
 		}
 	}
 
@@ -94,7 +94,7 @@ export class Webcam {
 		try {
 			this.#running = false;
 		} catch (e) {
-			this.#onerror(e);
+			this.#onerror({from: "webcam.stop", err: e});
 		}
 	}
 
@@ -118,10 +118,10 @@ export class Webcam {
 					if (this.#onimage !== null) {this.#onimage({image: bmp});}
 					setTimeout(() => {this.run();}, 0);
 				})
-				.catch(this.#onerror);
+				.catch((e) => {this.#onerror({from: "webcam.run.createImageBitmap", err: e});});
 			}
 		} catch (e) {
-			this.#onerror(e);
+			this.#onerror({from: "webcam.run", err: e});
 		}
 	}
 }

@@ -175,7 +175,7 @@ export class Segmenter {
         set onimage(f)   { this.#onimage = f; }
 	set onerror(f) { 
 		this.#onerror = f; 
-		this.#media.onerror = f;
+		this.#media.onerror = (e) => {this.#onerror({from: "segmenter.#media.onerror", err: e});};
 	}
 
 	#media_loaded;
@@ -222,10 +222,10 @@ export class Segmenter {
 		  image,
 		  (r) => {
 			  if (this.#onimage !== null) {
-				  this.result_to_images_promise(r).then(this.#onimage).catch(this.#onerror);
+				  this.result_to_images_promise(r).then(this.#onimage).catch((e) => {this.#onerror({from: "segmenter.handle_image.result_to_images_promise", err: e});});
 			  }
 		  },
-		  (err) => {this.#onerror(err);}
+		  (err) => {this.#onerror({from: "segmenter.handle_image.segmentor.push", err: err});}
 	  );
         }
 
