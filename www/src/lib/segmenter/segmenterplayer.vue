@@ -218,63 +218,90 @@ export default {
      * Convert number (seconds) to a formatted string mm:ss
      */
     to_mmss: function(seconds) {
-      const ss = seconds % 60;
-      const mm = Math.floor((seconds - ss) / 60);
-      return mm.toFixed(0) + ":" + ss.toFixed(0).padStart(2, '0');
+      try {
+        const ss = seconds % 60;
+        const mm = Math.floor((seconds - ss) / 60);
+        return mm.toFixed(0) + ":" + ss.toFixed(0).padStart(2, '0');
+      } catch (e) {
+        this.on_error("Error in to_mmss", e);
+      }
     },
 
     /*
      * Resize
      */
     resize: function() {
-      console.log("SegmenterPlayer: resize");
-      let c = this.renderer();
-      c.width = c.parentNode.clientWidth;
-      c.height = c.parentNode.clientHeight;
+      try {
+        let c = this.renderer();
+        c.width = c.parentNode.clientWidth;
+        c.height = c.parentNode.clientHeight;
+      } catch (e) {
+        this.on_error("Error in resize", e);
+      }
     },
 
     /*
      * close recording
      */
     close_recording: function() {
-      URL.revokeObjectURL(this.recording_url);
-      this.recording_url = null;
+      try {
+        URL.revokeObjectURL(this.recording_url);
+        this.recording_url = null;
+      } catch (e) {
+        this.on_error("Error in close_recording", e);
+      }
     },
 
     /*
      * Record
      */
     record: function() {
-      var chunks = [];
-      var stream = this.renderer().captureStream(30); // fps
-      if (this.audio_track) { stream.addTrack(this.audio_track); }
-      this.media_recorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
-      this.media_recorder.ondataavailable = (evt) => { chunks.push(evt.data); };
-      this.media_recorder.onstop = () => {
-            var blob = new Blob(chunks, {type: "video/webm" });
-            this.recording_url = URL.createObjectURL(blob);
-            this.media_recorder = null;
-      };
+      try {
+        var chunks = [];
+        var stream = this.renderer().captureStream(30); // fps
+        if (this.audio_track) { stream.addTrack(this.audio_track); }
+        this.media_recorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
+        this.media_recorder.ondataavailable = (evt) => { chunks.push(evt.data); };
+        this.media_recorder.onstop = () => {
+              try {
+                var blob = new Blob(chunks, {type: "video/webm" });
+                this.recording_url = URL.createObjectURL(blob);
+                this.media_recorder = null;
+              } catch (e) {
+                this.on_error("Error in media_recorder.onstop", e);
+              }
+        };
 
-      this.is_playing = true;
-      this.render();
-      this.media_recorder.start(1000);
+        this.is_playing = true;
+        this.render();
+        this.media_recorder.start(1000);
+      } catch (e) {
+        this.on_error("Error in record", e);
+      }
     },
 
     /*
      * Play
      */
     start: function() {
-      this.is_playing = true;
-      this.render();
+      try {
+        this.is_playing = true;
+        this.render();
+      } catch (e) {
+        this.on_error("Error in start", e);
+      }
     },
 
     /*
      * Stop
      */
     stop: function() {
-      this.is_playing = false;
-      if (this.media_recorder) { this.media_recorder.stop(); }
+      try {
+        this.is_playing = false;
+        if (this.media_recorder) { this.media_recorder.stop(); }
+      } catch (e) {
+        this.on_error("Error in stop", e);
+      }
     },
 
     renderer: function() {
@@ -285,30 +312,34 @@ export default {
      * Render
      */
     render: function() {
-      if (this.is_playing && ! this.has_error && this.image_back) {
-        var c = this.renderer();
-        var ctx = c.getContext('2d');
-        ctx.clearRect(0, 0, c.width, c.height);
+      try {
+        if (this.is_playing && ! this.has_error && this.image_back) {
+          var c = this.renderer();
+          var ctx = c.getContext('2d');
+          ctx.clearRect(0, 0, c.width, c.height);
+  
+          const ibf = this.fit_image(this.image_back, c);
+          ctx.drawImage(this.image_back, 
+                        0.5*(c.width - ibf.width), 
+                        0.5*(c.height - ibf.height), 
+                        ibf.width, ibf.height);
 
-        const ibf = this.fit_image(this.image_back, c);
-        ctx.drawImage(this.image_back, 
-                      0.5*(c.width - ibf.width), 
-                      0.5*(c.height - ibf.height), 
-                      ibf.width, ibf.height);
-
-        for (const img of [this.image_middle, this.image_front]) {
-          if (img) {
-            const r = this.fit_image(img, ibf);
-            ctx.drawImage(img,
-                          0.5*(c.width - r.width), 
-                          0.5*c.height + 0.5*ibf.height - r.height, 
-                          r.width, r.height); 
+          for (const img of [this.image_middle, this.image_front]) {
+            if (img) {
+              const r = this.fit_image(img, ibf);
+              ctx.drawImage(img,
+                            0.5*(c.width - r.width), 
+                            0.5*c.height + 0.5*ibf.height - r.height, 
+                            r.width, r.height); 
+            }
           }
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText("Made at video-mash.com", 0.5*(c.width - ibf.width) + 2, 0.5*(c.height - ibf.height) + 12);
         }
-        ctx.font = 'bold 12px sans-serif';
-        ctx.fillText("Made at video-mash.com", 0.5*(c.width - ibf.width) + 2, 0.5*(c.height - ibf.height) + 12);
+        window.requestAnimationFrame(this.render);
+      } catch (e) {
+        this.on_error("Error in render", e);
       }
-      window.requestAnimationFrame(this.render);
     },
 
     /*
@@ -320,18 +351,20 @@ export default {
      *    {width: abc, height: abc}
      */
     fit_image: function(image, target) {
-      if ((Math.abs(target.width) < 1e-3) || (Math.abs(target.height) < 1e-3)) { return {width: 0, height: 0}; }
+      try {
+        if ((Math.abs(target.width) < 1e-3) || (Math.abs(target.height) < 1e-3)) { return {width: 0, height: 0}; }
 
-      const w = image.width; const h = image.height; const ar = w / h;
-      const ar_t = target.width / target.height;
-      if (ar < ar_t) {
-        return {height: target.height, width: w / h * target.height};
-      } else {
-        return {height: h / w * target.width, width: target.width};
+        const w = image.width; const h = image.height; const ar = w / h;
+        const ar_t = target.width / target.height;
+        if (ar < ar_t) {
+          return {height: target.height, width: w / h * target.height};
+        } else {
+          return {height: h / w * target.width, width: target.width};
+        }
+      } catch (e) {
+        this.on_error("Error when fitting image", e);
       }
     },
-
-
 
     /*
      * on_error

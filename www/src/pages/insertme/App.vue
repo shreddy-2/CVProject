@@ -116,29 +116,37 @@ export default {
   },
 
   mounted: function() {
-    this.has_error = false;
+    try {
+      this.has_error = false;
 
-    this.video = null;
-    this.webcam = new Segmenter(new Webcam({audio: false, video: {facingMode: "user"}}));
-    this.video_ready = false;
-    this.webcam_ready = false;
+      this.video = null;
+      this.webcam = new Segmenter(new Webcam({audio: false, video: {facingMode: "user"}}));
+      this.video_ready = false;
+      this.webcam_ready = false;
 
-    this.is_playing = false;
-    this.is_recording = false;
+      this.is_playing = false;
+      this.is_recording = false;
 
-    const url = new URL(window.location);
-    if (url.searchParams.has("video")) {
-      console.log("Load video " + url.searchParams.get("video"));
-      this.set_video(url.searchParams.get("video"));
+      const url = new URL(window.location);
+      if (url.searchParams.has("video")) {
+        console.log("Load video " + url.searchParams.get("video"));
+        this.set_video(url.searchParams.get("video"));
+      }
+    } catch (e) {
+      this.on_error("Error during initialization", e);
     }
-   },
+  },
   
   methods: {
     /*
      * Assign video url
      */
     set_video: function(url) {
-      this.video = new Segmenter(new Video(url));
+      try {
+        this.video = new Segmenter(new Video(url));
+      } catch (e) {
+        this.on_error("Error in set_video", e);
+      }
     },
 
     /*
@@ -154,30 +162,42 @@ export default {
      * Start recording
      */
     record: function() {
-      this.webcam.start();
-      this.video.start();
-      this.$refs.segmenter_player.record();
-      this.is_playing = true;
-      this.is_recording = true;
+      try {
+        this.webcam.start();
+        this.video.start();
+        this.$refs.segmenter_player.record();
+        this.is_playing = true;
+        this.is_recording = true;
+      } catch (e) {
+        this.on_error("Error in record", e);
+      }
     },
 
     /*
      * Start
      */
     start: function() {
-      this.webcam.start();
-      this.video.start();
-      this.$refs.segmenter_player.start();
-      this.is_playing = true;
-      this.is_recording = false;
+      try {
+        this.webcam.start();
+        this.video.start();
+        this.$refs.segmenter_player.start();
+        this.is_playing = true;
+        this.is_recording = false;
+      } catch (e) {
+        this.on_error("Error in start", e);
+      }
     },
 
     stop: function() {
-      this.is_recording = false;
-      this.is_playing = false;
-      this.$refs.segmenter_player.stop();
-      this.video.stop();
-      this.webcam.stop();
+      try {
+        this.is_recording = false;
+        this.is_playing = false;
+        this.$refs.segmenter_player.stop();
+        this.video.stop();
+        this.webcam.stop();
+      } catch (e) {
+        this.on_error("Error in stop", e);
+      }
     },
 
     /*

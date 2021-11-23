@@ -10,23 +10,27 @@ export class Video {
 	#running;
 
 	constructor(url) {
-		this.#mediaStream = null;
-		this.#video = document.createElement('video');
-		this.#video.style.display = 'none';
-		let source = document.createElement('source');
-		source.setAttribute('src', url);
-		this.#video.crossOrigin = "anonymous";
-		this.#video.appendChild(source);
-		document.body.appendChild(this.#video);
-
-		this.#canvas = document.createElement('canvas');
-		this.#canvas.style.display = 'none';
-		document.body.appendChild(this.#canvas);
-
-		this.#onimage = null;
 		this.#onerror = (e) => {console.log(e); throw Error("Error whilst running Video");};
+		try {
+			this.#mediaStream = null;
+			this.#video = document.createElement('video');
+			this.#video.style.display = 'none';
+			let source = document.createElement('source');
+			source.setAttribute('src', url);
+			this.#video.crossOrigin = "anonymous";
+			this.#video.appendChild(source);
+			document.body.appendChild(this.#video);
 
-		this.#running = false;
+			this.#canvas = document.createElement('canvas');
+			this.#canvas.style.display = 'none';
+			document.body.appendChild(this.#canvas);
+
+			this.#onimage = null;
+
+			this.#running = false;
+		} catch (e) {
+			this.#onerror(e);
+		}
 	}
 
 	destroy() {
@@ -57,30 +61,42 @@ export class Video {
 	}
 
 	start() {
-		this.#running = true;
-		this.#canvas.width = this.#video.videoWidth;
-		this.#canvas.height = this.#video.videoHeight;
-		this.run();
-		this.#video.play();
+		try {
+			this.#running = true;
+			this.#canvas.width = this.#video.videoWidth;
+			this.#canvas.height = this.#video.videoHeight;
+			this.run();
+			this.#video.play();
+		} catch (e) {
+			this.#onerror(e);
+		}
 	}
 
 	stop() {
-		this.#running = false;
-		this.#video.pause();
+		try {
+			this.#running = false;
+			this.#video.pause();
+		} catch (e) {
+			this.#onerror(e);
+		}
 	}
 
 	run() {
-		if (this.#running) {
-			const ctx = this.#canvas.getContext('2d');
-			ctx.drawImage(this.#video, 0, 0, this.#canvas.width, this.#canvas.height);
-			const data = ctx.getImageData(0, 0, this.#canvas.width, this.#canvas.height);
-			createImageBitmap(data)
-			.then((bmp) => {
-				if (this.#onimage !== null) {this.#onimage({image: bmp});}
-				setTimeout(() => {this.run();}, 0);
-			})
-			.catch(this.#onerror);
+		try {
+			if (this.#running) {
+				const ctx = this.#canvas.getContext('2d');
+				ctx.drawImage(this.#video, 0, 0, this.#canvas.width, this.#canvas.height);
+				const data = ctx.getImageData(0, 0, this.#canvas.width, this.#canvas.height);
+				createImageBitmap(data)
+				.then((bmp) => {
+					if (this.#onimage !== null) {this.#onimage({image: bmp});}
+					setTimeout(() => {this.run();}, 0);
+				})
+				.catch(this.#onerror);
 
+			}
+		} catch (e) {
+			this.#onerror(e);
 		}
 	}
 }

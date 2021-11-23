@@ -88,13 +88,17 @@ export default {
   },
 
   mounted: function() {
-    this.has_error = false;
+    try {
+      this.has_error = false;
 
-    this.webcam = new Segmenter(new Webcam({audio: true, video: {facingMode: "environment"}}));
-    this.webcam_ready = false;
+      this.webcam = new Segmenter(new Webcam({audio: true, video: {facingMode: "environment"}}));
+      this.webcam_ready = false;
 
-    this.is_playing = false;
-    this.is_recording = false;
+      this.is_playing = false;
+      this.is_recording = false;
+    } catch (e) {
+      this.on_error("Error when initialilzing page", e);
+    }
   },
 
   methods: {
@@ -109,18 +113,22 @@ export default {
      * Handle image from the webcam
      */
     handle_segmented_images: function(s) {
-      var c = this.get_canvas();
-      var ctx = c.getContext('2d');
-      if (this.image_back === null) {
-        c.height = s.image.height;
-        c.width = s.image.width;
-        ctx.clearRect(0, 0, c.width, c.height);
-        ctx.drawImage(s.image, 0, 0, c.width, c.height);
+      try {
+        var c = this.get_canvas();
+        var ctx = c.getContext('2d');
+        if (this.image_back === null) {
+          c.height = s.image.height;
+          c.width = s.image.width;
+          ctx.clearRect(0, 0, c.width, c.height);
+          ctx.drawImage(s.image, 0, 0, c.width, c.height);
+        }
+        ctx.drawImage(s.background, 0, 0, c.width, c.height);
+        createImageBitmap(c, 0, 0, c.width, c.height)
+        .then((img) => {this.image_back = img;})
+        .catch((e) => {this.on_error("Error processing image", e);});
+      } catch (e) {
+        this.on_error("Error in handle_segmented_images", e);
       }
-      ctx.drawImage(s.background, 0, 0, c.width, c.height);
-      createImageBitmap(c, 0, 0, c.width, c.height)
-      .then((img) => {this.image_back = img;})
-      .catch((e) => {this.on_error("Error processing image", e);});
     },
 
     /*
@@ -135,27 +143,39 @@ export default {
      * Start recording
      */
     record: function() {
-      this.webcam.start();
-      this.$refs.segmenter_player.record();
-      this.is_playing = true;
-      this.is_recording = true;
+      try {
+        this.webcam.start();
+        this.$refs.segmenter_player.record();
+        this.is_playing = true;
+        this.is_recording = true;
+      } catch (e) {
+        this.on_error("Error in handle_segmented_images", e);
+      }
     },
 
     /*
      * Start
      */
     start: function() {
-      this.webcam.start();
-      this.$refs.segmenter_player.start();
-      this.is_playing = true;
-      this.is_recording = false;
+      try {
+        this.webcam.start();
+        this.$refs.segmenter_player.start();
+        this.is_playing = true;
+        this.is_recording = false;
+      } catch (e) {
+        this.on_error("Error in handle_segmented_images", e);
+      }
     },
 
     stop: function() {
-      this.is_recording = false;
-      this.is_playing = false;
-      this.$refs.segmenter_player.stop();
-      this.webcam.stop();
+      try {
+        this.is_recording = false;
+        this.is_playing = false;
+        this.$refs.segmenter_player.stop();
+        this.webcam.stop();
+      } catch (e) {
+        this.on_error("Error in stop", e);
+      }
     },
 
     /*
