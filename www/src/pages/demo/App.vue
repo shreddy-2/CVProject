@@ -85,9 +85,10 @@ export default {
   },
   methods: {
     record: function(id) {
+      try {
       console.log("Record canvas", id);
       const canvas = document.getElementById(id);
-      if (canvas === null) { alert("Incorrect element id provided: ", id); return; }
+      if (canvas === null) { this.on_error("Incorrect element id provided: ", id); return; }
 
       var chunks = [];
       var canvas_stream = canvas.captureStream(30); // fps
@@ -107,11 +108,20 @@ export default {
       // Start recording using a 1s timeslice [ie data is made available every 1s)
       this.media_recorder.start(1000);
 
+      } catch (e) {
+        this.on_error("Error in record" + e);
+      }
+
     },
     stop: function() {
+      try {
       if (this.media_recorder !== null) { this.media_recorder.stop(); }
+      } catch (e) {
+        this.on_error("Error in record" + e);
+      }
     },
     on_media_recorder_stop: function(chunks) {
+      try {
       this.media_recorder = null;
 
       // Gather chunks of video data into a blob and create an object URL
@@ -133,6 +143,9 @@ export default {
         URL.revokeObjectURL(recording_url);
         document.body.removeChild(a);
       }, 0);
+      } catch (e) {
+        this.on_error("Error in record" + e);
+      }
     },
     canvas_in: function () {
       return document.getElementById("canvas-in");
@@ -151,6 +164,7 @@ export default {
      * Resize canvas to match parent size
      */
     resize: function () {
+      try {
       console.log("resize");
       [
         this.canvas_in(),
@@ -161,20 +175,28 @@ export default {
         c.width = c.parentNode.clientWidth;
         c.height = c.parentNode.clientHeight;
       });
+      } catch (e) {
+        this.on_error("Error in record" + e);
+      }
     },
 
     /*
      * Initialisation
      */
     init: function () {
+      try {
       this.init_webcam();
       this.init_selfie_segmentation();
+      } catch (e) {
+        this.on_error("Error in record" + e);
+      }
     },
 
     /*
      * Initialize the webcam
      */
     init_webcam: function () {
+      try {
       // Request webcam with audio and user facing camera
       navigator.mediaDevices
         .getUserMedia({ audio: true, video: { facingMode: "user" } })
@@ -197,22 +219,30 @@ export default {
         .catch((e) => {
           this.on_error("Unable to start webcam", e);
         });
+      } catch (e) {
+        this.on_error("Error in record" + e);
+      }
     },
 
     /*
      * Playing
      */
     playing: async function () {
+      try {
       if (this.selfie_segmentation_ready) {
         await this.selfie_segmentation.send({ image: this.webcam_video });
       }
       window.requestAnimationFrame(this.playing);
+      } catch (e) {
+        this.on_error("Error in record" + e);
+      }
     },
 
     /*
      * Initialize Selfie Segmentation
      */
     init_selfie_segmentation: function () {
+      try {
       this.selfie_segmentation = new SelfieSegmentation({
         locateFile: (file) => {
           return `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${file}`;
@@ -221,12 +251,16 @@ export default {
       this.selfie_segmentation.setOptions({ modelSelection: 1 });
       this.selfie_segmentation.onResults(this.on_results);
       this.selfie_segmentation_ready = true;
+      } catch (e) {
+        this.on_error("Error in record" + e);
+      }
     },
 
     /*
      * handle results
      */
     on_results: function (results) {
+      try {
       {
         // Draw the original image
         const c = this.canvas_in();
@@ -263,6 +297,9 @@ export default {
         ctx.drawImage(results.segmentationMask, 0, 0, c.width, c.height);
         ctx.restore();
       }
+      } catch (e) {
+        this.on_error("Error in record", e);
+      }
     },
 
     /*
@@ -270,6 +307,7 @@ export default {
      */
     on_error: function (msg, e) {
       console.log(msg, e);
+      alert("Error: " + msg + "." + e);
       this.error = msg;
     },
   },

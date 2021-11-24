@@ -112,6 +112,7 @@ export class Webcam {
 				} else {
 					ctx.drawImage(this.#video, 0, 0, this.#canvas.width, this.#canvas.height);
 				}
+				/*
 				const data = ctx.getImageData(0, 0, this.#canvas.width, this.#canvas.height);
 				createImageBitmap(data)
 				.then((bmp) => {
@@ -119,6 +120,10 @@ export class Webcam {
 					setTimeout(() => {this.run();}, 0);
 				})
 				.catch((e) => {this.#onerror({from: "webcam.run.createImageBitmap", err: e});});
+				*/
+				// const img = this.#canvas.toDataURL("image/png");
+				if (this.#onimage !== null) {this.#onimage({image: this.#canvas});}
+				setTimeout(() => {this.run();}, 0);
 			}
 		} catch (e) {
 			this.#onerror({from: "webcam.run", err: e});

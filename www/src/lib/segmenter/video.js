@@ -86,6 +86,7 @@ export class Video {
 			if (this.#running) {
 				const ctx = this.#canvas.getContext('2d');
 				ctx.drawImage(this.#video, 0, 0, this.#canvas.width, this.#canvas.height);
+				/*
 				const data = ctx.getImageData(0, 0, this.#canvas.width, this.#canvas.height);
 				createImageBitmap(data)
 				.then((bmp) => {
@@ -93,6 +94,9 @@ export class Video {
 					setTimeout(() => {this.run();}, 0);
 				})
 				.catch(this.#onerror);
+				*/
+				if (this.#onimage !== null) {this.#onimage({image: this.#canvas});}
+				setTimeout(() => {this.run();}, 0);
 
 			}
 		} catch (e) {

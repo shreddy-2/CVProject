@@ -13,8 +13,9 @@ function get_background_bitmap(canvas, image, mask) {
       ctx.globalCompositeOperation = 'destination-out';
       ctx.drawImage(mask, 0, 0, canvas.width, canvas.height);
       ctx.restore();
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      return createImageBitmap(data);
+      // const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // return createImageBitmap(data);
+      return canvas;
 }
 
 function get_foreground_bitmap(canvas, image, mask) {
@@ -25,8 +26,9 @@ function get_foreground_bitmap(canvas, image, mask) {
       ctx.globalCompositeOperation = 'destination-in';
       ctx.drawImage(mask, 0, 0, canvas.width, canvas.height);
       ctx.restore();
-      const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      return createImageBitmap(data);
+      // const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      // return createImageBitmap(data);
+      return canvas;
 }
 
 class Segmentor {
@@ -76,14 +78,10 @@ class Segmentor {
 	}
 
         async extract(image) {
-	  console.log("Segmentor:extract", image);
           var res = null;
-	  console.log("Segmentor:extract (2)", res);
           this.#selfie_segmentation.onResults((r) => {res = r;});
           await this.#selfie_segmentation.send({image});
-	  console.log("Segmentor:extract (3)", res);
           if (res === null) { throw Error("Unable to perform extraction on the image provided"); }
-	  console.log("Segmentor:extract (4)", res);
           return res;
         }
 };
@@ -145,7 +143,8 @@ export class Segmenter {
 
 	#myKey;
         #media;
-	#canvas;
+	#canvas_background;
+	#canvas_foreground;
 
         #onimage;
 	#onerror;
@@ -158,14 +157,19 @@ export class Segmenter {
           this.#media = media;
 	  this.#media.onimage = (r) => {this.handle_image(r.image); }
 
-	  this.#canvas = document.createElement('canvas');
-	  this.#canvas.style.display = 'none';
-	  document.body.appendChild(this.#canvas);
+	  this.#canvas_foreground = document.createElement('canvas');
+	  this.#canvas_foreground.style.display = 'none';
+	  document.body.appendChild(this.#canvas_foreground);
+
+	  this.#canvas_background = document.createElement('canvas');
+	  this.#canvas_background.style.display = 'none';
+	  document.body.appendChild(this.#canvas_background);
         }
 
         destroy() {
 	  this.#media.destroy();
-	  this.#canvas.remove();
+	  this.#canvas_background.remove();
+	  this.#canvas_foreground.remove();
         }
 
 	get media()      { return this.#media; }
@@ -202,8 +206,10 @@ export class Segmenter {
 	loaded() { return this.#segmentor_loaded && this.#media_loaded; }
 
         start() {
-	  this.#canvas.width = this.#media.width;
-	  this.#canvas.height = this.#media.height;
+	  this.#canvas_background.width = this.#media.width;
+	  this.#canvas_background.height = this.#media.height;
+	  this.#canvas_foreground.width = this.#media.width;
+	  this.#canvas_foreground.height = this.#media.height;
           this.#media.start();
         }
 
@@ -231,15 +237,13 @@ export class Segmenter {
 
         result_to_images_promise(r) {
 	  return new Promise((resolve, reject) => {
-		  get_foreground_bitmap(this.#canvas, r.image, r.segmentationMask)
-		  .then((foreground) => {
-			  get_background_bitmap(this.#canvas, r.image, r.segmentationMask)
-			  .then((background) => {
-				  resolve({ image: r.image, foreground, background });
-			  })
-			  .catch(reject);
-		  })
-		  .catch(reject);
+		  try {
+		    const foreground = get_foreground_bitmap(this.#canvas_foreground, r.image, r.segmentationMask);
+		    const background = get_background_bitmap(this.#canvas_background, r.image, r.segmentationMask);
+		    resolve({ image: r.image, foreground, background });
+		  } catch(e) {
+			  reject(e);
+		  }
 	  });
         }
 }
