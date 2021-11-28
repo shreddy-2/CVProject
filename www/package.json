@@ -12,6 +12,12 @@
     "@mediapipe/camera_utils": "^0.3.1620247984",
     "@mediapipe/selfie_segmentation": "^0.1.1629494320",
     "@tailwindcss/forms": "^0.3.3",
+    "@tensorflow-models/body-pix": "^2.2.0",
+    "@tensorflow/tfjs-backend-cpu": "^3.11.0",
+    "@tensorflow/tfjs-backend-wasm": "^3.11.0",
+    "@tensorflow/tfjs-backend-webgl": "^3.11.0",
+    "@tensorflow/tfjs-converter": "^3.11.0",
+    "@tensorflow/tfjs-core": "^3.11.0",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "vue": "^2.6.11"
