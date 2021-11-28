@@ -49,12 +49,12 @@ class SegModel {
 
 	constructor() {
 		this.#on_results = null;
-		this.#use_selfie = true;
+		this.#use_selfie = false;
 		this.#selfie_model = null;
-		this.#selfie_error = null;
+		this.#selfie_error = "";
 		this.#use_bodypix = true;
 		this.#bodypix_model = null
-		this.#bodypix_error = null;
+		this.#bodypix_error = "";
 		this.#mask = null;
 	}
 
