@@ -22,6 +22,8 @@ export class Webcam {
 			this.#userFacing = false;
 
 			this.#video = document.createElement('video');
+			this.#video.setAttribute('playsinline', '');
+			this.#video.setAttribute('autoplay', '');
 			this.#video.muted = true;
 			this.#video.style.display = 'none';
 			document.body.appendChild(this.#video);
@@ -65,7 +67,7 @@ export class Webcam {
 			  	}
 	
 			  	this.#video.srcObject = media_stream;
-			  	this.#video.oncanplay = () => {
+			  	this.#video.onloadeddata = () => {
 				  	if (this.#oncanplay !== null) {this.#oncanplay();}
 				  	this.#canvas.width = this.#video.videoWidth;
 				  	this.#canvas.height = this.#video.videoHeight;

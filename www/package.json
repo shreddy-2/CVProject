@@ -9,7 +9,6 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@mediapipe/camera_utils": "^0.3.1620247984",
     "@mediapipe/selfie_segmentation": "^0.1.1629494320",
     "@tailwindcss/forms": "^0.3.3",
     "@tensorflow-models/body-pix": "^2.2.0",
@@ -20,6 +19,7 @@
     "@tensorflow/tfjs-core": "^3.11.0",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
+    "gif.js.optimized": "^1.0.1",
     "vue": "^2.6.11"
   },
   "devDependencies": {

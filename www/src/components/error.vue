@@ -20,6 +20,9 @@
                     <li v-if="error !== null">
                       Error: {{ error }}
                     </li>
+                    <li v-if="error !== null">
+                      Stack: {{ error.stack }}
+                    </li>
                   </ul>
                 </div>
               </div>
