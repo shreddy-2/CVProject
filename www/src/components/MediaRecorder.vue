@@ -202,7 +202,7 @@ export default {
     record: function(stream) {
       try {
         const videoTrack = (stream.getVideoTracks().length === 1 ? stream.getVideoTracks()[0] : null);
-        var use_mediarecorder = (videoTrack !== null) && (videoTrack.getCapabilities().deviceId !== null);
+        var use_mediarecorder = (videoTrack !== null) && ('deviceId' in videoTrack.getCapabilities());
         if (use_mediarecorder) {
           this.record_using_mediarecorder(stream);
         } else {
