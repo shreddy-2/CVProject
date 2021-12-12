@@ -7,28 +7,25 @@ import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-wasm';
 import '@tensorflow/tfjs-backend-webgl';
 
-export function makeSegModel(use_selfie = true, use_bodypix = true) {
+export function makeSelfieSegModel() {
   return new Promise((resolve, reject) => {
-    var segmentor = null;
-    if (use_selfie && ! use_bodypix) {
-      segmentor = new SegModel(use_selfie, use_bodypix);
+      const use_selfie = true;
+      const use_bodypix = false;
+      var segmentor = new SegModel(use_selfie, use_bodypix);
       segmentor.send( get_thispersondoesnotexist_image() )
       .then(() => { resolve(segmentor); })
       .catch(reject);
+  });
+}
 
-    } else if ((! use_selfie) && use_bodypix) {
-      segmentor = new SegModel(use_selfie, use_bodypix);
+export function makeBodypixSegModel() {
+  return new Promise((resolve, reject) => {
+      const use_selfie = false;
+      const use_bodypix = true;
+      var segmentor = new SegModel(use_selfie, use_bodypix);
       segmentor.send( get_thispersondoesnotexist_image() )
       .then(() => { resolve(segmentor); })
       .catch(reject);
-
-    } else {
-      segmentor = new SegModel(use_selfie, use_bodypix);
-      segmentor.send( get_thispersondoesnotexist_image() )
-      .catch(() => { segmentor.send( get_thispersondoesnotexist_image() ) })
-      .then(() => { resolve(segmentor); })
-      .catch(reject);
-    }
   });
 }
 

@@ -60,6 +60,7 @@
     <canvas class="hidden" id="app-webcam-canvas"></canvas>
     <canvas class="hidden" id="app-manipulation-canvas"></canvas>
     <canvas class="hidden" id="app-background-canvas"></canvas>
+    <canvas class="hidden" width="100" height="100" id="check-createimagebitmap-canvas"></canvas>
     <CalculateFps
       @fps="fps = $event;"
       ref="calculate_fps"
@@ -78,7 +79,7 @@ import MediaRecorder from "@/components/MediaRecorder";
 import CalculateFps from "@/components/CalculateFps";
 
 import "@/lib/animationframecheck.js";
-import { makeSegModel } from "@/lib/segmodel.js";
+import { makeBodypixSegModel, makeSelfieSegModel } from "@/lib/segmodel.js";
 import { makeWebcam } from "@/lib/utils.js";
 import { drawVideo, copyCanvas, resizeCanvasToFit } from "@/lib/canvasfunctions.js";
 
@@ -123,19 +124,39 @@ export default {
       this.render();
 
       const urlSearchParams = new URL(window.location.href).searchParams;
-      var use_selfie = true; var use_bodypix = true;
       if (urlSearchParams.has("selfie")) {
-        use_selfie = true; use_bodypix = false;
+        makeSelfieSegModel()
+        .then((s) => { this.segmentor = s; this.allow_recording = true; })
+        .catch((e) => { this.on_error("Error in mounted::makeSelfieModel", e); });
+
       } else if (urlSearchParams.has("bodypix")) {
-        use_selfie = false; use_bodypix = true;
+        makeBodypixSegModel()
+        .then((s) => { this.segmentor = s; this.allow_recording = true; })
+        .catch((e) => { this.on_error("Error in mounted::makeBodypixSegModel", e); });
+
+      } else if (typeof createImageBitmap !== 'function') {
+        makeBodypixSegModel()
+        .then((s) => { this.segmentor = s; this.allow_recording = true; })
+        .catch((e) => { this.on_error("Error in mounted::makeBodypixSegModel", e); });
+
+      } else {
+        const id = document.getElementById("check-createimagebitmap-canvas")
+            .getContext("2d")
+            .createImageData(100, 100);
+        createImageBitmap(id)
+        .then(() => { 
+          // Able to create image bitmap from imagedata: use mediapipe selfie
+          makeSelfieSegModel()
+          .then((s) => { this.segmentor = s; this.allow_recording = true; })
+          .catch((e) => { this.on_error("Error in mounted::createImageBitmap::makeSelfieModel", e); });
+        })
+        .catch(() => { 
+          // Unable to create image bitmap from imagedata - Safari: use bodypix
+          makeBodypixSegModel()
+          .then((s) => { this.segmentor = s; this.allow_recording = true; })
+          .catch((e) => { this.on_error("Error in mounted::createImageBitmap::makeBodypixSegModel", e); });
+        });
       }
-      makeSegModel(use_selfie, use_bodypix)
-      .then((segmodel) => { 
-        this.segmentor = segmodel; 
-        this.allow_recording = (this.segmentor.model === "Selfie")
-                            || (this.segmentor.model === "bodypix");
-      })
-      .catch((e) => { this.on_error("Error in mounted:makeSegModel", e);});
 
     } catch (e) {
       this.on_error("Error in mounted", e);
