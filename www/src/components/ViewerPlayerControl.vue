@@ -7,7 +7,7 @@
           <!-- Record button -->
           <a href="#" @click="$emit('on_record')" :class="{'hidden': (is_recording || (! allow_recording))}"><IconRecord c="h-10 w-10" /></a>
           <!-- Play button -->
-          <a href="#" @click="$emit('on_start')" :class="{'hidden': (is_playing || (! allow_playing))}"><IconPlay c="h-10 w-10" /></a>
+          <a href="#" @click="$emit('on_play')" :class="{'hidden': (is_playing || (! allow_playing))}"><IconPlay c="h-10 w-10" /></a>
           <!-- Stop button -->
           <a href="#" @click="$emit('on_stop')" :class="{'hidden': (! is_playing && ! is_recording)}"><IconStop c="h-10 w-10" /></a>
           <!-- Restart -->

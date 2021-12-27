@@ -1,7 +1,6 @@
 <template>
   <div id="app">
     <div class="absolute top-0 bottom-0 left-0 right-0">
-
       <!-- Player -->
       <div class="absolute inset-0 bg-gray-800 flex-col">
         <canvas class="border-gray-300 mx-auto" id="render-canvas"></canvas>
@@ -79,7 +78,8 @@ import MediaRecorder from "@/components/MediaRecorder";
 import CalculateFps from "@/components/CalculateFps";
 
 import "@/lib/animationframecheck.js";
-import { makeBodypixSegModel, makeSelfieSegModel } from "@/lib/segmodel.js";
+// import { makeBodypixSegModel, makeSelfieSegModel } from "@/lib/segmodel.js";
+import { makeSegmentationModel } from "@/lib/segmodel.js";
 import { makeWebcam } from "@/lib/utils.js";
 import { drawVideo, copyCanvas, resizeCanvasToFit } from "@/lib/canvasfunctions.js";
 
@@ -124,6 +124,11 @@ export default {
       this.render();
 
       const urlSearchParams = new URL(window.location.href).searchParams;
+      makeSegmentationModel(urlSearchParams)
+      .then((s) => { this.segmentor = s; this.allow_recording = true; })
+      .catch((e) => { this.on_error("Error in mounted::makeSegmentationModel", e); });
+/*
+      const urlSearchParams = new URL(window.location.href).searchParams;
       if (urlSearchParams.has("selfie")) {
         makeSelfieSegModel()
         .then((s) => { this.segmentor = s; this.allow_recording = true; })
@@ -157,6 +162,7 @@ export default {
           .catch((e) => { this.on_error("Error in mounted::createImageBitmap::makeBodypixSegModel", e); });
         });
       }
+*/
 
     } catch (e) {
       this.on_error("Error in mounted", e);
@@ -184,7 +190,7 @@ export default {
            this.video().srcObject = media_stream;
            this.video().play();
         })
-        .catch((e) => {this.on_error("Error in init::this.webcam()", e);});
+        .catch((e) => {this.on_error("Error in init::makeWebcam", e);});
 
       } catch (e) {
         this.on_error("Error in init", e);
@@ -200,7 +206,9 @@ export default {
           if (vc.width > 0 && vc.height > 0) {
 
             var canvas = this.render_canvas();
-            if (this.do_resize) { canvas = resizeCanvasToFit(canvas, {width: vc.width, height: vc.height}); }
+            if (this.do_resize) { 
+              canvas = resizeCanvasToFit(canvas, {width: vc.width, height: vc.height}); 
+            }
             var ctx = canvas.getContext('2d');
 
             var to_draw = null
@@ -234,6 +242,7 @@ export default {
             ctx.fillText("Made at video-mash.com", 2, 12);
 
             this.$refs.calculate_fps.tick();
+            this.do_resize = false;
             if (this.is_recording) {this.$refs.media_recorder.capture(canvas); }
           }
           window.requestAnimationFrame(this.render);

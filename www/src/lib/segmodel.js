@@ -7,6 +7,44 @@ import '@tensorflow/tfjs-backend-cpu';
 import '@tensorflow/tfjs-backend-wasm';
 import '@tensorflow/tfjs-backend-webgl';
 
+export function makeSegmentationModel(urlSearchParams) {
+  return new Promise((resolve, reject) => {
+    if (urlSearchParams.has("selfie")) {
+      makeSelfieSegModel()
+        .then(resolve)
+        .catch(reject);
+
+    } else if (urlSearchParams.has("bodypix")) {
+        makeBodypixSegModel()
+        .then(resolve)
+        .catch(reject);
+
+    } else if (typeof createImageBitmap !== 'function') {
+        makeBodypixSegModel()
+        .then(resolve)
+        .catch(reject);
+
+    } else {
+        const id = document.getElementById("check-createimagebitmap-canvas")
+            .getContext("2d")
+            .createImageData(100, 100);
+        createImageBitmap(id)
+        .then(() => { 
+          // Able to create image bitmap from imagedata: use mediapipe selfie
+          makeSelfieSegModel()
+          .then(resolve)
+          .catch(reject);
+        })
+        .catch(() => { 
+          // Unable to create image bitmap from imagedata - Safari: use bodypix
+          makeBodypixSegModel()
+          .then(resolve)
+          .catch(reject);
+        });
+    }
+  });
+}
+
 export function makeSelfieSegModel() {
   return new Promise((resolve, reject) => {
       const use_selfie = true;

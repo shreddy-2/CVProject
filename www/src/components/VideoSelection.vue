@@ -1,68 +1,67 @@
 <template>
-  <div>
-        <div class="relative max-w-3xl mx-auto mt-12 lg:mt-24 text-center">
-          <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
-            Select a video from the list below
-          </h2>
-        </div>
+  <div class="bg-white pt-2 lg:pt-6 pb-2 lg:pb-4">
+    <div class="relative max-w-3xl mx-auto text-center">
+      <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
+        Select a video from the list below
+      </h2>
+    </div>
 
-        <div class="relative max-w-3xl mx-auto mt-12">
-        <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <li v-for="s in samples"
-              :key="s.video_url"
-              class="col-span-1 flex flex-col text-center bg-white rounded-lg shadow divide-y divide-gray-200">
-            <div class="flex-1 flex flex-col p-2">
-              <img class="h-32 flex-shrink-0 mx-auto rounded-full" :src="s.thumbnail_url" alt="">
-              <dl class="mt-1 flex-grow flex flex-col justify-between">
-                <dd class="text-gray-500 text-sm">{{ s.description }}</dd>
-              </dl>
-            </div>
-            <div>
-              <div class="-mt-px flex divide-x divide-gray-200">
-                <div class="w-0 flex-1 flex">
-                  <a href="#" class="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500" @click="set_video(s.video_url)">
-                    <!-- Heroicon name: solid/play -->
-                    <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                    </svg>
-                    <span class="ml-3">View</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </li>
-        </ul>
-        </div>
-
-
-        <div class="relative max-w-3xl mx-auto mt-12 lg:mt-24 text-center">
-          <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
-            Or use your own
-          </h2>
-        </div>
-
-        <div class="relative max-w-xl mx-auto mt-12">
-          <div class="relative text-center mt-12">
-            <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-              <div class="space-y-1 text-center">
-                <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                <div class="flex text-sm text-gray-600">
-                  <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                    <span>Select a file</span>
-                    <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="on_file">
-                  </label>
-                  <!-- <p class="pl-1">or drag and drop</p> -->
-                </div>
-                <p class="text-xs text-gray-500">
-                  MP4 (1 file up to 50MB)
-                </p>
+    <div class="relative max-w-3xl mx-auto mt-2">
+      <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <li v-for="s in samples"
+            :key="s.video_url"
+            class="col-span-1 flex flex-col text-center bg-white rounded-lg shadow divide-y divide-gray-200">
+          <div class="flex-1 flex flex-col p-2">
+            <img class="h-32 flex-shrink-0 mx-auto rounded-full" :src="s.thumbnail_url" alt="">
+            <dl class="mt-1 flex-grow flex flex-col justify-between">
+              <dd class="text-gray-500 text-sm">{{ s.description }}</dd>
+            </dl>
+          </div>
+          <div>
+            <div class="-mt-px flex divide-x divide-gray-200">
+              <div class="w-0 flex-1 flex">
+                <a href="#" class="relative -mr-px w-0 flex-1 inline-flex items-center justify-center py-4 text-sm text-gray-700 font-medium border border-transparent rounded-bl-lg hover:text-gray-500" @click="set_video(s.video_url)">
+                  <!-- Heroicon name: solid/play -->
+                  <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="ml-3">View</span>
+                </a>
               </div>
             </div>
           </div>
+        </li>
+      </ul>
+    </div>
+
+
+    <div class="relative max-w-3xl mx-auto mt-2 lg:mt-4 text-center">
+      <h2 class="text-lg leading-8 font-bold tracking-tight text-gray-900 sm:text-xl">
+        Or use your own
+      </h2>
+    </div>
+
+    <div class="relative max-w-xl mx-auto mt-2">
+      <div class="relative text-center mt-2">
+        <div class="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+          <div class="space-y-1 text-center">
+            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="flex text-sm text-gray-600">
+              <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                <span>Select a file</span>
+                <input id="file-upload" name="file-upload" type="file" class="sr-only" @change="on_file">
+              </label>
+              <!-- <p class="pl-1">or drag and drop</p> -->
+            </div>
+            <p class="text-xs text-gray-500">
+              MP4 (1 file up to 50MB)
+            </p>
+          </div>
         </div>
- 
+      </div>
+    </div>
   </div>
 </template>
 <script>
