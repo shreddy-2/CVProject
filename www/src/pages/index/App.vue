@@ -36,8 +36,8 @@ This website uses the <a href="https://google.github.io/mediapipe/solutions/self
               outline of there presence.
             </p>
           </a>
-          <div class="mt-6 flex items-center">
-            <a href="/ghosting.html">Load the page</a>
+          <div class="mt-6 flex items-center text-gray-900">
+            <a href="/ghosting.html">Open</a>
           </div>
         </div>
 
@@ -49,7 +49,8 @@ This website uses the <a href="https://google.github.io/mediapipe/solutions/self
               </span>
             </a>
           </div>
-          <a href="/weatherforecast.html" class="block mt-4">
+          <!-- a href="#weatherforecast.html" class="block mt-4" -->
+          <a href="#" class="block mt-4">
             <p class="text-xl font-semibold text-gray-900">
               <i>Work-in-progress</i> - Have you ever wanted to present the weather forecast?
             </p>
@@ -61,12 +62,13 @@ This website uses the <a href="https://google.github.io/mediapipe/solutions/self
               who knows, you might get spotted and offered the job one day.
             </p>
           </a>
-          <div class="mt-6 flex items-center">
-            <a href="/weatherforecast.html">Load the page</a>
+          <div class="mt-6 flex items-center text-gray-900">
+            <!-- a href="/weatherforecast.html">Load the page</a -->
+            <a href="#">Coming soon (hopefully)</a>
           </div>
         </div>
 
-        <div>
+        <!-- div>
           <div>
             <a href="/demo.html" class="inline-block">
               <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
@@ -84,12 +86,12 @@ This website uses the <a href="https://google.github.io/mediapipe/solutions/self
               This model is used throughout this website to extract prominent human(s) in webcam and video feeds. The prominent human(s) are referred to as foreground - ie the action taking place - and the remaining of the images as background - the setting of the action.
             </p>
           </a>
-          <div class="mt-6 flex items-center">
-            <a href="/demo.html">Load the page</a>
+          <div class="mt-6 flex items-center text-gray-900">
+            <a href="/demo.html">Open</a>
           </div>
-        </div>
+        </div -->
 
-        <div>
+        <!-- div>
           <div>
             <a href="/insertme.html" class="inline-block">
               <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-pink-100 text-pink-800">
@@ -110,16 +112,16 @@ This website uses the <a href="https://google.github.io/mediapipe/solutions/self
               It works best with reasonably static scene.
             </p>
           </a>
-          <div class="mt-6 flex items-center">
-            <a href="/insertme.html">Load the page</a>
+          <div class="mt-6 flex items-center text-gray-900">
+            <a href="/insertme.html">Open</a>
           </div>
-        </div>
+        </div -->
 
         <div>
           <div>
             <a href="/actionathome.html" class="inline-block">
               <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                Action transposing
+                Action Transposing
               </span>
             </a>
           </div>
@@ -134,8 +136,8 @@ This website uses the <a href="https://google.github.io/mediapipe/solutions/self
               There is a future plan to set the video location to give it a bit more of an AR feel - but that's for the future...
             </p>
           </a>
-          <div class="mt-6 flex items-center">
-            <a href="/actionathome.html">Load the page</a>
+          <div class="mt-6 flex items-center text-gray-900">
+            <a href="/actionathome.html">Open</a>
           </div>
         </div>
       </div>
